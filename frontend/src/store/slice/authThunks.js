@@ -1,11 +1,11 @@
 
 import { auth } from '../../config/firebase.js'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth'
-import api from '../../services/api.js'
+import api from '../../services/api.service.js'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 
-export const registerUser = createAsyncThunk('auth/register', async ({email, password, name},{rejectWithValue}) => {
+export const registerUser = createAsyncThunk('/auth/register', async ({email, password, name},{rejectWithValue}) => {
    try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const firebase_uid = userCredential.user.uid;
@@ -23,7 +23,7 @@ export const registerUser = createAsyncThunk('auth/register', async ({email, pas
    }
 })
 
-export const loginUser = createAsyncThunk('auth/login', async ({email, password},{rejectWithValue}) => {
+export const loginUser = createAsyncThunk('/auth/login', async ({email, password},{rejectWithValue}) => {
    try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const firebase_uid = userCredential.user.uid;
