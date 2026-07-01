@@ -5,7 +5,7 @@ import express from "express";
 import cors from "cors";
 import { sequelize } from './src/models/index.js'
 import authRoutes from './src/routes/auth.routes.js'
-
+import jobRoutes from './src/routes/job.routes.js'
 
 
 
@@ -18,7 +18,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use('/api/auth', authRoutes)
-
+app.use('/api/jobs', jobRoutes)
 
 const PORT = process.env.PORT || 5000;
 
