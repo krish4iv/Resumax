@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { sequelize } from './src/models/index.js'
+import authRoutes from './src/routes/auth.routes.js'
 
 
 
@@ -16,6 +17,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use('/api/auth', authRoutes)
 
 
 const PORT = process.env.PORT || 5000;
