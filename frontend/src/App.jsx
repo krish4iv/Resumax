@@ -5,8 +5,11 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
 import ProtectedRoutes from './components/ProtectedRoutes'
+import { useAuth } from './hooks/useAuth.js'
 
 const App = () => {
+  useAuth()
+  
   return (
   
       <Routes>
