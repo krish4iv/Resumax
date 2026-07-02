@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
+import ProtectedRoutes from './components/ProtectedRoutes'
 
 const App = () => {
   return (
@@ -12,8 +13,8 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/dashboard" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
+        <Route path="/jobs" element={<ProtectedRoutes><Jobs /></ProtectedRoutes>} />
       </Routes>
   
   )

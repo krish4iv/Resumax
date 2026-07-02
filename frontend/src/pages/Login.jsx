@@ -14,6 +14,8 @@ const Login = () => {
   const [password, setPassword] = useState('')
 
   const result = async () => {
+    if (!email || !password) return
+
     const response = await dispatch(loginUser({ email, password }))
     if (loginUser.fulfilled.match(response)) {
       navigate('/dashboard')

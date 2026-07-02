@@ -14,6 +14,11 @@ const Register = () => {
   const navigate = useNavigate()
 
   const result = async () => {
+    if (!email || !password) return
+    if (password.length < 6) {
+      alert('Password must be at least 6 characters')
+      return
+    }
     const response = await dispatch(registerUser({ email, password, name }))
     if (registerUser.fulfilled.match(response)) {
       navigate('/dashboard')
