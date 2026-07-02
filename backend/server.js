@@ -25,6 +25,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/jobs', authMiddleware, jobRoutes)
+ 
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
