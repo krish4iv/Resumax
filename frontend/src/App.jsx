@@ -10,6 +10,8 @@ import Dashboard from './pages/Dashboard.jsx'
 import Jobs from './pages/Jobs.jsx'
 import ProfileSetup from './pages/ProfileSetup.jsx'
 import ProtectedRoutes from './components/ProtectedRoutes'
+import News from './pages/News'
+
 
 const App = () => {
   const dispatch = useDispatch()
@@ -34,6 +36,7 @@ const App = () => {
       <Route path="/profile-setup" element={<ProfileSetup />} />
       <Route path="/dashboard" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
       <Route path="/jobs" element={<ProtectedRoutes><Jobs /></ProtectedRoutes>} />
+      <Route path="/news" element={<ProtectedRoutes><News /></ProtectedRoutes>} />
     </Routes>
   )
 }
