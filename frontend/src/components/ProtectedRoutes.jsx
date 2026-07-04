@@ -1,15 +1,18 @@
 import { Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { Spinner, Box } from '@chakra-ui/react'
+import { Loader2 } from 'lucide-react'
 
 const ProtectedRoutes = ({ children }) => {
   const { user, initialized } = useSelector((state) => state.auth)
 
   if (!initialized) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <Spinner size="xl" color="blue.500" />
-      </Box>
+      <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-[#0a0a0f]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={32} className="animate-spin text-blue-500" />
+          <p className="text-sm text-slate-400">Loading...</p>
+        </div>
+      </div>
     )
   }
 

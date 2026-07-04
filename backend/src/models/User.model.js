@@ -29,6 +29,18 @@ const User = sequelize.define('User',{
    avatar_url: {
     type: DataTypes.STRING,
     allowNull: true
+   },
+   skills: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: []
+   },
+   preferred_role: {
+    type: DataTypes.STRING,
+    allowNull: true
+   },
+   location: {
+    type: DataTypes.STRING,
+    allowNull: true
    }
 },{
     timestamps: true

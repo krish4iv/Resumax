@@ -51,8 +51,27 @@ async function getMe(req, res) {
   }
 }
 
+async function updateProfile (req, res) {
+  try {
+    const { location, preferred_role, skills } = req.body
+
+    const user = await User.findOne({ where: { firebase_uid: req.user.uid } })
+
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    await user.update({ location, preferred_role, skills })
+    
+    res.status(200).json({ message: 'Profile updated', user })
+  } catch (error) {
+
+    console.error('Error updating profile:', error)
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+}
+
 export default {
     register,
     login,
-    getMe
+    getMe,
+    updateProfile
 };

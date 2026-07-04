@@ -11,5 +11,7 @@ authRouter.post('/register', authController.register);
 
 authRouter.post('/login', authController.login);
 
+authRouter.put('/profile', authMiddleware, authController.updateProfile)
+
 
 export default authRouter;
