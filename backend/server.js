@@ -7,6 +7,8 @@ import { sequelize } from './src/models/index.js'
 import authRoutes from './src/routes/auth.routes.js'
 import jobRoutes from './src/routes/job.routes.js'
 import authMiddleware from './src/middleware/auth.middleware.js'
+import userRoutes from './src/routes/user.routes.js'
+
 
 
 const app = express();
@@ -25,6 +27,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/jobs', authMiddleware, jobRoutes)
+app.use('/api/users', userRoutes)
  
 
 app.use((req, res) => {

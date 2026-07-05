@@ -1,0 +1,29 @@
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\begin{document}
+\begin{center}
+    {\LARGE \textbf{ {{name}} }}\\
+    \vspace{0.2cm}
+    {{email}} | {{phone}}
+\end{center}
+\section*{Summary}
+{{summary}}
+\section*{Skills}
+{% if skills %}
+\begin{itemize}[leftmargin=*]
+    {% for skill in skills %}\item {{skill}}{% endfor %}
+\end{itemize}
+{% endif %}
+\section*{Projects}
+{% for project in projects %}
+\textbf{ {{project.name}} }\\
+{{project.description}}
+{% if not loop.last %}\vspace{0.3cm}{% endif %}
+{% endfor %}
+\end{document}

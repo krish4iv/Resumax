@@ -1,0 +1,7 @@
+flask
+flask-cors
+pandas
+fuzzywuzzy
+python-Levenshtein
+requests
+python-jobspy

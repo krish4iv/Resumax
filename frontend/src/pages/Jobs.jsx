@@ -7,6 +7,7 @@ import {
   Search, MapPin, Building2, Clock,
   Briefcase, SlidersHorizontal, Loader2, X
 } from 'lucide-react'
+import JobRecommendations from '../components/JobRecommendations.jsx'
 
 const jobTypes = [
   { value: '',           label: 'All Types'  },

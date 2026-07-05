@@ -1,0 +1,32 @@
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\definecolor{accent1}{RGB}{70,150,120}
+\definecolor{accent2}{RGB}{200,120,50}
+\titleformat{\section}{\large\color{accent1}\bfseries}{}{0em}{}[{\color{accent2}\titlerule[1pt]}]
+\begin{document}
+\begin{center}
+    {\LARGE \textbf{\textcolor{accent1}{ {{name}} }}}\\
+    \vspace{0.2cm}
+    {\color{accent2}{{email}} | {{phone}}}
+\end{center}
+\section*{Summary}
+{{summary}}
+\section*{Skills}
+{% if skills %}
+\begin{itemize}[leftmargin=*]
+    {% for skill in skills %}\item {{skill}}{% endfor %}
+\end{itemize}
+{% endif %}
+\section*{Projects}
+{% for project in projects %}
+\textbf{\textcolor{accent1}{ {{project.name}} }}\\
+{{project.description}}
+{% if not loop.last %}\vspace{0.3cm}{% endif %}
+{% endfor %}
+\end{document}

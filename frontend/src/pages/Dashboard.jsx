@@ -8,6 +8,9 @@ import {
   Briefcase, BookmarkCheck, Eye,
   MapPin, Building2, Clock, Loader2
 } from 'lucide-react'
+import JobRecommendations from '../components/JobRecommendations.jsx'
+import JobTrends from '../components/JobTrends.jsx'
+import SkillGapAnalysis from '../components/SkillGapAnalysis.jsx'
 
 const stats = [
   { label: 'Jobs Applied',   value: '12', icon: Briefcase,    color: 'text-blue-500',   bg: 'bg-blue-500/10'   },
@@ -16,9 +19,11 @@ const stats = [
 ]
 
 const Dashboard = () => {
+ 
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const { user } = useSelector((state) => state.auth)
+  const uid = user?.firebase_uid
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -65,6 +70,26 @@ const Dashboard = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+          <div className={theme.card}>
+            <h2 className={`text-lg font-semibold ${theme.heading} mb-4`}>
+              Job Recommendations
+            </h2>
+            <JobRecommendations uid={uid} />
+          </div>
+
+          <div className={theme.card}>
+            <JobTrends />
+          </div>
+        </div>
+
+        <div className={`${theme.card} mt-6`}>
+            <h2 className={`text-lg font-semibold ${theme.heading} mb-4`}>
+              Skill Gap Analysis
+            </h2>
+            <SkillGapAnalysis uid={uid} />
         </div>
 
         {/* Recent Jobs */}

@@ -1,0 +1,27 @@
+# Terminal 1 — Node.js backend
+cd backend && npm run dev
+
+# Terminal 2 — Job Scraper
+cd python_services/job_scraper
+uvicorn jobspy_api:app --port 8000 --reload
+
+# Terminal 3 — Skill Analysis
+cd python_services/skill_analysis
+pip install -r requirements.txt
+python skills_analysis_api.py
+
+# Terminal 4 — Job Recommendations
+cd python_services/job_recommendation
+pip install -r requirements.txt
+python recommendation_api.py
+
+# Terminal 5 — Resume Builder
+cd python_services/resume_builder
+uvicorn app:app --port 8009 --reload
+
+# Terminal 6 — News
+cd python_services/news
+uvicorn news_api:app --port 8001 --reload
+
+# Terminal 7 — Frontend
+cd frontend && npm run dev

@@ -11,6 +11,8 @@ import Jobs from './pages/Jobs.jsx'
 import ProfileSetup from './pages/ProfileSetup.jsx'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import News from './pages/News'
+import ResumeBuilder from './pages/ResumeBuilder'
+
 
 
 const App = () => {
@@ -37,6 +39,7 @@ const App = () => {
       <Route path="/dashboard" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
       <Route path="/jobs" element={<ProtectedRoutes><Jobs /></ProtectedRoutes>} />
       <Route path="/news" element={<ProtectedRoutes><News /></ProtectedRoutes>} />
+      <Route path="/resume" element={<ProtectedRoutes><ResumeBuilder /></ProtectedRoutes>} />
     </Routes>
   )
 }
