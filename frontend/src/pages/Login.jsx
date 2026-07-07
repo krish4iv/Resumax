@@ -3,20 +3,26 @@ import { useSelector, useDispatch } from 'react-redux'
 import { loginUser } from '../store/slice/authThunks.js'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/layout/authLayout.jsx'
-import { theme } from '../theme/index.js'
 import { Loader2, Mail, Lock } from 'lucide-react'
 
-// Shared input styling: no Three.js, no JS-driven focus handlers — just
-// Tailwind's own focus: state, themed to match AuthLayout's blue → violet
-// accent (same gradient as the "Resumax" logo and theme.btnPrimary).
+// Themed to match the landing page's actual palette (cyan / violet /
+// emerald, not blue) — no Three.js, just Tailwind's own focus: state.
 const inputClass =
   'peer w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder:text-slate-500 ' +
   'bg-white/5 border border-white/10 outline-none transition-all duration-200 ' +
-  'focus:bg-white/[0.07] focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10'
+  'focus:bg-white/[0.07] focus:border-cyan-400/50 focus:ring-4 focus:ring-cyan-400/10'
 
 const iconClass =
   'pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 ' +
-  'transition-colors duration-200 peer-focus:text-violet-400'
+  'transition-colors duration-200 peer-focus:text-cyan-300'
+
+// Same solid white pill the landing page uses for its real CTAs (Hero's
+// "START ANALYZING", Pricing's "CONTINUE") — landing's gradients are
+// decorative (headings, orbs), the actual buttons are solid white/black.
+const primaryButtonClass =
+  'w-full mt-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 ' +
+  'text-sm font-bold tracking-wide text-black transition-transform duration-300 ' +
+  'hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100'
 
 const Login = () => {
   const dispatch = useDispatch()
@@ -83,7 +89,7 @@ const Login = () => {
               </label>
               <Link
                 to="/forgot-password"
-                className="text-xs font-medium text-violet-400 hover:text-violet-300 transition-colors"
+                className="text-xs font-medium text-cyan-300 hover:text-cyan-200 transition-colors"
               >
                 Forgot password?
               </Link>
@@ -105,10 +111,10 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full mt-2 ${theme.btnPrimary} flex items-center justify-center gap-2`}
+            className={primaryButtonClass}
           >
             {loading
-              ? <><Loader2 size={15} className="animate-spin" /> Signing in...</>
+              ? <><Loader2 size={15} className="animate-spin text-black" /> Signing in...</>
               : 'Sign In'
             }
           </button>
@@ -120,7 +126,7 @@ const Login = () => {
           Don't have an account?{' '}
           <Link
             to="/register"
-            className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+            className="text-cyan-300 hover:text-cyan-200 font-medium transition-colors"
           >
             Create one
           </Link>
