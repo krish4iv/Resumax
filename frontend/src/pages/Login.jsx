@@ -6,6 +6,18 @@ import AuthLayout from '../components/layout/authLayout.jsx'
 import { theme } from '../theme/index.js'
 import { Loader2, Mail, Lock } from 'lucide-react'
 
+// Shared input styling: no Three.js, no JS-driven focus handlers — just
+// Tailwind's own focus: state, themed to match AuthLayout's blue → violet
+// accent (same gradient as the "Resumax" logo and theme.btnPrimary).
+const inputClass =
+  'peer w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder:text-slate-500 ' +
+  'bg-white/5 border border-white/10 outline-none transition-all duration-200 ' +
+  'focus:bg-white/[0.07] focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10'
+
+const iconClass =
+  'pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 ' +
+  'transition-colors duration-200 peer-focus:text-violet-400'
+
 const Login = () => {
   const dispatch = useDispatch()
   const { loading, error } = useSelector((state) => state.auth)
@@ -52,42 +64,40 @@ const Login = () => {
               Email
             </label>
             <div className="relative">
-              <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder:text-slate-500 outline-none transition-all duration-200"
-                style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                }}
-                onFocus={e => e.target.style.borderColor = 'rgba(99,102,241,0.6)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                className={inputClass}
+                required
               />
+              <Mail size={15} className={iconClass} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-slate-300">
+                Password
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-xs font-medium text-violet-400 hover:text-violet-300 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <div className="relative">
-              <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder:text-slate-500 outline-none transition-all duration-200"
-                style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                }}
-                onFocus={e => e.target.style.borderColor = 'rgba(99,102,241,0.6)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                className={inputClass}
+                required
               />
+              <Lock size={15} className={iconClass} />
             </div>
           </div>
 
