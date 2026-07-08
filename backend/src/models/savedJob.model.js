@@ -8,12 +8,9 @@ const SavedJob = sequelize.define("SavedJob", {
     primaryKey: true,
   },
   user_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    references: { model: "User", key: "firebase_uid" },
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  },
+  type: DataTypes.STRING,
+  allowNull: false,
+},
   job_title: {
     type: DataTypes.STRING,
     allowNull: false,

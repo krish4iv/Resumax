@@ -10,12 +10,9 @@ const Application = sequelize.define("Application", {
     primaryKey: true,
   },
   user_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    references: { model: "User", key: "firebase_uid" },
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  },
+  type: DataTypes.STRING,
+  allowNull: false,
+},
   job_title: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -29,12 +26,7 @@ const Application = sequelize.define("Application", {
     allowNull: true,
   },
   status: {
-    type: DataTypes.ENUM([
-      "applied",
-      "interview",
-      "offer",
-      "rejected",
-    ]),
+    type: DataTypes.ENUM("applied", "interview", "offer", "rejected"),
     defaultValue: "applied",
   },
   applied_date: {

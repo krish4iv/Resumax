@@ -7,9 +7,6 @@ const Experience = sequelize.define("Experience", {
   user_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    references: { model: "User", key: "firebase_uid" },
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
   },
   role: {
     type: DataTypes.STRING,
@@ -34,3 +31,5 @@ const Experience = sequelize.define("Experience", {
 }, {
   timestamps: true,
 });
+
+export default Experience

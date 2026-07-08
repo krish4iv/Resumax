@@ -8,12 +8,9 @@ const Project = sequelize.define("Project", {
     primaryKey: true,
   },
   user_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    references: { model: "User", key: "firebase_uid" },
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  },
+  type: DataTypes.STRING,
+  allowNull: false,
+},
   name: {
     type: DataTypes.STRING,
     allowNull: false,

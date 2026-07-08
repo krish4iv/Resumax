@@ -7,9 +7,6 @@ const Education = sequelize.define("Education", {
   user_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    references: { model: "User", key: "firebase_uid" },
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
   },
   school: {
     type: DataTypes.STRING,
@@ -34,3 +31,5 @@ const Education = sequelize.define("Education", {
 }, {
   timestamps: true,
 });
+
+export default Education
