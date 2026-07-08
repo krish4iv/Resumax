@@ -1,3 +1,7 @@
+import { DataTypes } from "sequelize";
+
+import sequelize from "../config/db.js";
+
 const Education = sequelize.define("Education", {
   id: {
     type: DataTypes.UUID,

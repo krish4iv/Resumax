@@ -8,6 +8,12 @@ import authRoutes from './src/routes/auth.routes.js'
 import jobRoutes from './src/routes/job.routes.js'
 import authMiddleware from './src/middleware/auth.middleware.js'
 import userRoutes from './src/routes/user.routes.js'
+import applicationRoutes from './src/routes/application.routes.js'
+import savedJobRoutes from './src/routes/savedJob.routes.js'
+import experienceRoutes from './src/routes/experience.routes.js'
+import educationRoutes from './src/routes/education.routes.js'
+import projectRoutes from './src/routes/project.routes.js'
+import resumeRoutes from './src/routes/resume.routes.js'
 
 
 
@@ -28,6 +34,12 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/jobs', authMiddleware, jobRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/applications', authMiddleware, applicationRoutes)
+app.use('/api/saved-jobs', authMiddleware, savedJobRoutes)
+app.use('/api/experience', authMiddleware, experienceRoutes)
+app.use('/api/education', authMiddleware, educationRoutes)
+app.use('/api/projects', authMiddleware, projectRoutes)
+app.use('/api/resumes', authMiddleware, resumeRoutes)
  
 
 app.use((req, res) => {

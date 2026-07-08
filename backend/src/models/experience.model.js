@@ -1,3 +1,7 @@
+import { DataTypes } from "sequelize";
+
+import sequelize from "../config/db.js";
+
 const Experience = sequelize.define("Experience", {
   id: {
     type: DataTypes.UUID,
