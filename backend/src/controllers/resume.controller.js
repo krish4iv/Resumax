@@ -1,0 +1,53 @@
+import { Resume } from "../models/index.js";
+
+async function createResume(req, res) {
+    try {
+        const { filename, ats_score, content_quality, ats_structure, job_optimization, writing_quality, app_ready, strengths, improvements } = req.body
+        const user_id = req.user.uid;
+        const resume = await Resume.create({
+            filename,
+            ats_score,
+            content_quality,
+            ats_structure,
+            job_optimization,
+            writing_quality,
+            app_ready,
+            strengths,
+            improvements,
+            tags,
+            user_id
+        });
+        res.status(201).json(resume);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+async function getAllResumes(req, res) {
+    try {
+        const user_id = req.user.uid;
+        const resumes = await Resume.findAll({ where: { user_id }, order: [['createdAt', 'DESC']] })
+        res.status(200).json(resumes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+async function getResumeById(req, res) {
+    try {
+        const { id } = req.params;
+        const user_id = req.user.uid;
+        const resume = await Resume.findOne({ where: { id, user_id } });
+        if (!resume) return res.status(404).json({ message: 'Resume not found' });
+        
+        res.status(200).json(resume);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export default {
+    createResume,
+    getAllResumes,
+    getResumeById
+};
