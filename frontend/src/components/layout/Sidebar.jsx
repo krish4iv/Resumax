@@ -14,7 +14,7 @@ const MAIN_ITEMS = [
   { id: "atlas",     label: "Atlas",     icon: Bot,           route: "/atlas"     },
   { id: "path",      label: "Path",      icon: Route,         route: "/path"      },
   { id: "jobs",      label: "Jobs",      icon: Briefcase,     route: "/jobs"      },
-  { id: "documents", label: "Documents", icon: FileText,      route: "/documents" },
+  { id: "resume",    label: "Resume",    icon: FileText,      route: "/resume"    },
   { id: "interview", label: "Interview", icon: Target,        route: "/interview" },
   { id: "profile",   label: "Profile",   icon: User,          route: "/profile"   },
 ]

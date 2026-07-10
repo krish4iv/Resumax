@@ -15,7 +15,7 @@ app.add_middleware(
 )
 
 @app.get("/scrape_jobs")
-async def get_jobs(search_term: str, location: str, results_wanted: int = 20):
+async def get_jobs(search_term: str, location: str, results_wanted: int = 200):
     try:
         jobs = scrape_jobs(
             site_name=["indeed", "linkedin", "glassdoor", "naukri"],
