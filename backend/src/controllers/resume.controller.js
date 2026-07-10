@@ -14,7 +14,6 @@ async function createResume(req, res) {
             app_ready,
             strengths,
             improvements,
-            tags,
             user_id
         });
         res.status(201).json(resume);
@@ -39,7 +38,7 @@ async function getResumeById(req, res) {
         const user_id = req.user.uid;
         const resume = await Resume.findOne({ where: { id, user_id } });
         if (!resume) return res.status(404).json({ message: 'Resume not found' });
-        
+
         res.status(200).json(resume);
     } catch (error) {
         res.status(500).json({ message: error.message });

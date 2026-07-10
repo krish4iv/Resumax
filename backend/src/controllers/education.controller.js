@@ -31,7 +31,7 @@ async function getEducation(req, res){
 
 async function updateEducation(req, res){
     try {
-        const {id} = req.params
+        const id = req.params.id
         const {school, degree, field, start_date, end_date} = req.body
         const user_id = req.user.uid
         const education = await Education.findOne({ where: { id, user_id } })

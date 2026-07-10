@@ -10,6 +10,11 @@ import requests #This lets Python send requests to the internet.
 import jinja2 #This lets Python generate text files.
 import uuid #This lets Python generate unique IDs.
 import os #This lets Python interact with your computer's file system.
+from fastapi import UploadFile, File
+import PyPDF2 #This lets Python read PDF files.
+import io #This lets Python handle data in memory.
+import json #This lets Python work with JSON data.
+import re #This lets Python work with regular expressions.
 
 PDFLATEX_PATH = r"C:\Program Files\MiKTeX\miktex\bin\x64\pdflatex.exe"
 
@@ -27,7 +32,11 @@ os.makedirs("static/resumes", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 OLLAMA_API = "http://localhost:11434/api/generate"
+
+class RewriteRequest(BaseModel):
+    bullet: str
 
 class SummarizeRequest(BaseModel):
     bullets: List[str]
@@ -218,6 +227,107 @@ async def generate_pdf_endpoint(request: ResumeRequest):
             raise Exception(f"PDF generation failed: {process.stdout}")
 
         return {"pdf_url": f"/static/resumes/{resume_id}/resume.pdf"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.post("/analyze-resume/")
+async def analyze_resume(file: UploadFile = File(...)):
+    try:
+        # Read PDF bytes
+        pdf_bytes = await file.read()
+        
+        # Extract text from PDF
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
+        resume_text = ""
+        for page in pdf_reader.pages:
+            resume_text += page.extract_text() or ""
+        
+        if not resume_text.strip():
+            raise HTTPException(status_code=400, detail="Could not extract text from PDF")
+
+        # Send to Ollama for analysis
+        prompt = f"""Analyze this resume and return ONLY a valid JSON object with exactly these fields:
+{{
+  "ats_score": <number 0-100>,
+  "content_quality": <number 0-40>,
+  "ats_structure": <number 0-20>,
+  "job_optimization": <number 0-25>,
+  "writing_quality": <number 0-10>,
+  "app_ready": <number 0-5>,
+  "strengths": ["strength1", "strength2", "strength3"],
+  "improvements": ["improvement1", "improvement2", "improvement3"]
+}}
+
+Resume text:
+{resume_text[:3000]}
+
+Return ONLY the JSON object, no explanation, no markdown."""
+
+        response = requests.post(OLLAMA_API, json={
+            "model": "gemma2",
+            "prompt": prompt,
+            "stream": False
+        })
+
+        if response.status_code != 200:
+            raise Exception(f"Ollama error: {response.text}")
+
+        raw = response.json().get("response", "").strip()
+
+        # Extract JSON from response
+        json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+        if not json_match:
+            raise Exception("Could not parse AI response as JSON")
+
+        result = json.loads(json_match.group())
+
+        # Add filename to result
+        result["filename"] = file.filename
+
+        return result
+
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="AI returned invalid JSON")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/rewrite-bullet/")
+async def rewrite_bullet(request: RewriteRequest):
+    try:
+        if not request.bullet.strip():
+            raise HTTPException(status_code=400, detail="Bullet text is required")
+
+        prompt = f"""Rewrite this resume bullet point to be stronger, more impactful, and ATS-friendly.
+Use action verbs, quantify achievements where possible, and follow the STAR method.
+Return ONLY the rewritten bullet point, nothing else.
+
+Original: {request.bullet}
+
+Rewritten:"""
+
+        response = requests.post(OLLAMA_API, json={
+            "model": "gemma2",
+            "prompt": prompt,
+            "stream": False
+        })
+
+        if response.status_code != 200:
+            raise Exception(f"Ollama error: {response.text}")
+
+        rewritten = response.json().get("response", "").strip()
+
+        # Clean up any extra text
+        rewritten = rewritten.split('\n')[0].strip()
+        rewritten = rewritten.lstrip('•-* ')
+
+        return {
+            "original": request.bullet,
+            "rewritten": rewritten
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
