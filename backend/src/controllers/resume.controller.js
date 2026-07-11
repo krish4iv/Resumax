@@ -44,9 +44,38 @@ async function getResumeById(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
+async function updateResume(req, res) {
+  try {
+    const { id } = req.params
+    const user_id = req.user.uid
+    const resume = await Resume.findOne({ where: { id, user_id } })
+    if (!resume) return res.status(404).json({ message: 'Resume not found' })
+
+    const { filename, content, ats_score, content_quality, ats_structure,
+            job_optimization, writing_quality, app_ready, strengths, improvements } = req.body
+
+    await resume.update({
+      ...(filename !== undefined && { filename }),
+      ...(content !== undefined && { content }),
+      ...(ats_score !== undefined && { ats_score }),
+      ...(content_quality !== undefined && { content_quality }),
+      ...(ats_structure !== undefined && { ats_structure }),
+      ...(job_optimization !== undefined && { job_optimization }),
+      ...(writing_quality !== undefined && { writing_quality }),
+      ...(app_ready !== undefined && { app_ready }),
+      ...(strengths !== undefined && { strengths }),
+      ...(improvements !== undefined && { improvements }),
+    })
+
+    res.status(200).json(resume)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
 
 export default {
-    createResume,
-    getAllResumes,
-    getResumeById
-};
+  createResume,
+  getAllResumes,
+  getResumeById,
+  updateResume 
+}

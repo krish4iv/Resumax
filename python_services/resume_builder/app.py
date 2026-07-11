@@ -249,17 +249,28 @@ async def analyze_resume(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Could not extract text from PDF")
 
         # Send to Ollama for analysis
-        prompt = f"""Analyze this resume and return ONLY a valid JSON object with exactly these fields:
+        prompt = f"""You are an expert ATS resume analyzer and career coach reviewing resumes like a strict recruiter panel.
+Analyze this resume and return ONLY a valid JSON object with exactly these fields:
+
 {{
-  "ats_score": <number 0-100>,
+  "ats_score": <number 0-100, sum of the 5 categories below>,
   "content_quality": <number 0-40>,
   "ats_structure": <number 0-20>,
   "job_optimization": <number 0-25>,
   "writing_quality": <number 0-10>,
   "app_ready": <number 0-5>,
-  "strengths": ["strength1", "strength2", "strength3"],
-  "improvements": ["improvement1", "improvement2", "improvement3"]
+  "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
+  "findings": [
+    {{
+      "issue": "short title of the problem, 3-6 words",
+      "detail": "one or two sentence explanation of the problem and a specific fix, written like a recruiter giving feedback",
+      "severity": "high"
+    }}
+  ]
 }}
+
+Return 3 to 6 findings, ordered most important first. severity must be one of: "high", "medium", "low".
+Be specific — reference actual content from the resume, not generic advice.
 
 Resume text:
 {resume_text[:3000]}
@@ -284,7 +295,9 @@ Return ONLY the JSON object, no explanation, no markdown."""
 
         result = json.loads(json_match.group())
 
-        # Add filename to result
+        # Defensive defaults in case the model skips a field
+        result.setdefault("strengths", [])
+        result.setdefault("findings", [])
         result["filename"] = file.filename
 
         return result

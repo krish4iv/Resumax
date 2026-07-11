@@ -17,6 +17,7 @@ const MAIN_ITEMS = [
   { id: "resume",    label: "Resume",    icon: FileText,      route: "/resume"    },
   { id: "interview", label: "Interview", icon: Target,        route: "/interview" },
   { id: "profile",   label: "Profile",   icon: User,          route: "/profile"   },
+  { id: "documents", label: "Documents", icon: FileText,      route: "/documents" },
 ]
 
 const RESOURCE_ITEMS = [

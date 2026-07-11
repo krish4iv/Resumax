@@ -43,10 +43,14 @@ const Resume = sequelize.define("Resume", {
     type: DataTypes.ARRAY(DataTypes.STRING),
     defaultValue: [],
   },
-  improvements: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+  findings: {
+    type: DataTypes.JSONB,
     defaultValue: [],
   },
+  content: {
+    type: DataTypes.JSONB,
+    defaultValue: {}
+  }
 }, {
   timestamps: true,
 });

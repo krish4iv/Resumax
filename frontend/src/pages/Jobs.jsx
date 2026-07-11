@@ -6,6 +6,7 @@ import {
   Briefcase, Loader2, X, DollarSign, Bookmark,
   ExternalLink, Target, ChevronDown, ChevronRight, Sparkles
 } from 'lucide-react'
+import { useSelector } from 'react-redux'
 
 const jobTypes = [
   { value: '',           label: 'Any level'  },
@@ -62,8 +63,9 @@ function mapRecommendedJob(job, i) {
   }
 }
 
-const Jobs = ({ userId }) => {
-  const uid = userId || (typeof window !== 'undefined' && localStorage.getItem('uid')) || null
+const Jobs = () => {
+  const { user } = useSelector((state) => state.auth)
+  const uid = user?.firebase_uid
 
   const [activeTab, setActiveTab] = useState('browse')
 

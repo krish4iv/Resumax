@@ -8,5 +8,6 @@ router.use(authMiddleware);
 router.post("/", resumeController.createResume);
 router.get("/", resumeController.getAllResumes);
 router.get("/:id", resumeController.getResumeById);
+router.put("/:id", resumeController.updateResume);
 
 export default router;
