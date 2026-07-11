@@ -2,7 +2,7 @@ import { Resume } from "../models/index.js";
 
 async function createResume(req, res) {
     try {
-        const { filename, ats_score, content_quality, ats_structure, job_optimization, writing_quality, app_ready, strengths, improvements } = req.body
+        const { filename, ats_score, content_quality, ats_structure, job_optimization, writing_quality, app_ready, strengths, findings } = req.body
         const user_id = req.user.uid;
         const resume = await Resume.create({
             filename,
@@ -13,7 +13,7 @@ async function createResume(req, res) {
             writing_quality,
             app_ready,
             strengths,
-            improvements,
+            findings,
             user_id
         });
         res.status(201).json(resume);
@@ -44,6 +44,7 @@ async function getResumeById(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
+
 async function updateResume(req, res) {
   try {
     const { id } = req.params
@@ -52,7 +53,7 @@ async function updateResume(req, res) {
     if (!resume) return res.status(404).json({ message: 'Resume not found' })
 
     const { filename, content, ats_score, content_quality, ats_structure,
-            job_optimization, writing_quality, app_ready, strengths, improvements } = req.body
+            job_optimization, writing_quality, app_ready, strengths, findings } = req.body
 
     await resume.update({
       ...(filename !== undefined && { filename }),
@@ -64,7 +65,7 @@ async function updateResume(req, res) {
       ...(writing_quality !== undefined && { writing_quality }),
       ...(app_ready !== undefined && { app_ready }),
       ...(strengths !== undefined && { strengths }),
-      ...(improvements !== undefined && { improvements }),
+      ...(findings !== undefined && { findings }),
     })
 
     res.status(200).json(resume)

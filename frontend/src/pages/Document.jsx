@@ -414,23 +414,24 @@ function AIReviewTab({ onSaved }) {
   }
 
   async function handleAnalyze() {
-    if (!file) return
-    setStatus("analyzing")
-    setError(null)
-    try {
-      const analysis = await analyzeResume(file)
+  if (!file) return
+  setStatus("analyzing")
+  setError(null)
+  try {
+    const analysis = await analyzeResume(file)
+    console.log('FULL ANALYSIS RESPONSE:', analysis)  // ← add here
 
-      const record = {
-        filename: file.name,
-        ats_score: analysis.ats_score,
-        content_quality: analysis.content_quality,
-        ats_structure: analysis.ats_structure,
-        job_optimization: analysis.job_optimization,
-        writing_quality: analysis.writing_quality,
-        app_ready: analysis.app_ready,
-        strengths: analysis.strengths || [],
-        findings: analysis.findings || [],  // ← updated field name
-      }
+    const record = {
+      filename: file.name,
+      ats_score: analysis.ats_score,
+      content_quality: analysis.content_quality,
+      ats_structure: analysis.ats_structure,
+      job_optimization: analysis.job_optimization,
+      writing_quality: analysis.writing_quality,
+      app_ready: analysis.app_ready,
+      strengths: analysis.strengths || [],
+      findings: analysis.findings || [],
+    }
 
       setStatus("saving")
       const saved = await createResume(record)
@@ -482,7 +483,7 @@ function AIReviewTab({ onSaved }) {
 
       {status === "done" && result && (
         <ScoreCard resume={result} eyebrow={`Analysis complete · ${result.filename}`} showDetails />
-      )}
+      )}  
     </div>
   )
 }
@@ -514,12 +515,8 @@ export default function Documents() {
     fetchResumes()
   }, [fetchResumes])
 
-  const analysis = async () => {
-    const analysis = await analyzeResume(file)
-    console.log('FULL ANALYSIS RESPONSE:', analysis)
-  }
-  analysis();
-  
+
+
   return (
     <MainLayout>
       <div className="p-10 py-2 items-center justify-center h-full w-full animate-fade-in">

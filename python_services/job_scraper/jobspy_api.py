@@ -24,7 +24,7 @@ async def get_jobs(search_term: str, location: str, results_wanted: int = 200):
             location=location,
             results_wanted=results_wanted,
             hours_old=72,
-            country_indeed="USA"
+            country_indeed="USA",
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error scraping jobs: {str(e)}")

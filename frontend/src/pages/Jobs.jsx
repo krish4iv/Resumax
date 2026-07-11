@@ -4,9 +4,12 @@ import jobsScraperService from '../services/jobs.service.js'
 import {
   Search, MapPin, Building2, Clock,
   Briefcase, Loader2, X, DollarSign, Bookmark,
-  ExternalLink, Target, ChevronDown, ChevronRight, Sparkles
+  ExternalLink, Target, ChevronDown, ChevronRight, Sparkles,
+  CheckCircle2
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import { saveJob } from '../services/saveJobs.service.js'
+import { getApplications, createApplication } from '../services/application.service.js'
 
 const jobTypes = [
   { value: '',           label: 'Any level'  },
@@ -77,6 +80,12 @@ const Jobs = () => {
   const [salary, setSalary]     = useState('')
   const [jobs, setJobs]         = useState([])
   const [loading, setLoading]   = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [savedIds, setSavedIds] = useState(new Set())
+  const [applications, setApplications] = useState([])
+  const [appsLoading, setAppsLoading] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [appliedIds, setAppliedIds] = useState(new Set())
 
   // ---- For You tab state ----
   const [recJobs, setRecJobs]         = useState([])
@@ -87,6 +96,43 @@ const Jobs = () => {
   // ---- shared detail-panel selection (per tab, so switching tabs keeps each selection) ----
   const [selectedBrowseId, setSelectedBrowseId] = useState(null)
   const [selectedRecId, setSelectedRecId]       = useState(null)
+
+  async function handleApply(job) {
+    setApplying(true)
+    try {
+      await createApplication({
+        job_title: job.title,
+        company: job.company,
+        job_url: job.source_url,
+        status: 'applied',
+        applied_date: new Date().toISOString().split('T')[0],
+      })
+      setAppliedIds(prev => new Set(prev).add(job.id))
+      // refresh pipeline in background so switching tabs shows it immediately
+      fetchApplications()
+    } catch (err) {
+      console.error('Failed to create application:', err)
+    } finally {
+      setApplying(false)
+    }
+  } 
+
+  const fetchApplications = useCallback(async () => {
+    try {
+      setAppsLoading(true)
+      const data = await getApplications()
+      setApplications(data)
+    } catch (err) {
+      console.error('Failed to fetch applications:', err)
+    } finally {
+      setAppsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (activeTab === 'pipeline') fetchApplications()
+  }, [activeTab, fetchApplications])
+
 
   const fetchJobs = useCallback(async () => {
     // jobspy requires search_term + location — skip the call until both exist
@@ -283,15 +329,39 @@ const Jobs = () => {
           </p>
         )}
 
-        {/* Pipeline (placeholder — no backend wired yet) */}
+        {/* Pipeline  */}
         {activeTab === 'pipeline' && (
-          <div className="text-center py-16 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-            <Briefcase size={44} className="mx-auto text-slate-600 mb-3" />
-            <p className="font-medium text-white">Nothing in your pipeline yet</p>
-            <p className="text-slate-500 text-sm mt-1">
-              Jobs you save from Browse or For You will show up here.
-            </p>
-          </div>
+          appsLoading ? (
+            <div className="flex items-center justify-center py-20 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+              <Loader2 size={26} className="animate-spin text-cyan-400" />
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="text-center py-16 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+              <Briefcase size={44} className="mx-auto text-slate-600 mb-3" />
+              <p className="font-medium text-white">Nothing in your pipeline yet</p>
+              <p className="text-slate-500 text-sm mt-1">
+                Jobs you save from Browse or For You will show up here.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {['applied', 'interview', 'offer', 'rejected'].map(status => (
+                <div key={status}>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3">
+                    {status} ({applications.filter(a => a.status === status).length})
+                  </p>
+                  <div className="space-y-2">
+                    {applications.filter(a => a.status === status).map(app => (
+                      <div key={app.id} className="p-3 rounded-xl border border-white/[0.08] bg-white/[0.03]">
+                        <p className="text-sm font-medium text-white">{app.job_title}</p>
+                        <p className="text-xs text-slate-500">{app.company}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
 
         {/* Master-detail layout for Browse / For You */}
@@ -401,9 +471,21 @@ const Jobs = () => {
                       <Target size={14} />
                       Tailor for this
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-all">
-                      <Bookmark size={14} />
-                      Save
+                    <button
+                      onClick={() => handleSaveJob(selectedJob)}
+                      disabled={saving || savedIds.has(selectedJob.id)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
+                    >
+                      <Bookmark size={14} className={savedIds.has(selectedJob.id) ? 'fill-current' : ''} />
+                      {savedIds.has(selectedJob.id) ? 'Saved' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => handleApply(selectedJob)}
+                      disabled={applying || appliedIds.has(selectedJob.id)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                    >
+                      <CheckCircle2 size={14} />
+                      {appliedIds.has(selectedJob.id) ? 'Applied' : applying ? 'Applying…' : 'Apply'}
                     </button>
                     {selectedJob.source_url && (
                       <a
