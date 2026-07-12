@@ -266,11 +266,11 @@ function OverviewTab({ resumes, loading, error, onNewResume }) {
 ----------------------------------------------------------------*/
 
 function ResumesTab({ resumes, loading, error, onRefresh }) {
+  const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState(null)
 
   return (
     <div className="space-y-6">
-      {/* ...header unchanged... */}
       {error && <ErrorBanner message={error} />}
 
       {loading ? (
@@ -289,11 +289,11 @@ function ResumesTab({ resumes, loading, error, onRefresh }) {
         <div className="space-y-3">
           {resumes.map((r) => (
             <div key={r.id ?? r.filename}>
-              <Glass
-                onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                className="flex cursor-pointer items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-white/[0.04]"
-              >
-                <div className="flex min-w-0 items-center gap-3">
+              <Glass className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-white/[0.04]">
+                <button
+                  onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                  className="flex min-w-0 items-center gap-3 flex-1 text-left"
+                >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5">
                     <FileText size={16} className="text-slate-300" />
                   </div>
@@ -304,18 +304,27 @@ function ResumesTab({ resumes, loading, error, onRefresh }) {
                       {formatDate(r.createdAt ?? r.created_at)}
                     </p>
                   </div>
+                </button>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      (r.ats_score ?? 0) >= 80
+                        ? "bg-emerald-400/15 text-emerald-300"
+                        : (r.ats_score ?? 0) >= 50
+                        ? "bg-amber-400/15 text-amber-300"
+                        : "bg-rose-400/15 text-rose-300"
+                    }`}
+                  >
+                    {r.ats_score ?? "—"}/100
+                  </span>
+                  <button
+                    onClick={() => navigate(`/resume-builder/${r.id}`)}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+                  >
+                    Edit
+                  </button>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-                    (r.ats_score ?? 0) >= 80
-                      ? "bg-emerald-400/15 text-emerald-300"
-                      : (r.ats_score ?? 0) >= 50
-                      ? "bg-amber-400/15 text-amber-300"
-                      : "bg-rose-400/15 text-rose-300"
-                  }`}
-                >
-                  {r.ats_score ?? "—"}/100
-                </span>
               </Glass>
 
               {expandedId === r.id && (
@@ -401,6 +410,7 @@ function Dropzone({ file, onFile, disabled }) {
 }
 
 function AIReviewTab({ onSaved }) {
+  const navigate = useNavigate()
   const [file, setFile] = useState(null)
   const [status, setStatus] = useState("idle")
   const [error, setError] = useState(null)
@@ -414,24 +424,24 @@ function AIReviewTab({ onSaved }) {
   }
 
   async function handleAnalyze() {
-  if (!file) return
-  setStatus("analyzing")
-  setError(null)
-  try {
-    const analysis = await analyzeResume(file)
-    console.log('FULL ANALYSIS RESPONSE:', analysis)  // ← add here
+    if (!file) return
+    setStatus("analyzing")
+    setError(null)
+    try {
+      const analysis = await analyzeResume(file)
 
-    const record = {
-      filename: file.name,
-      ats_score: analysis.ats_score,
-      content_quality: analysis.content_quality,
-      ats_structure: analysis.ats_structure,
-      job_optimization: analysis.job_optimization,
-      writing_quality: analysis.writing_quality,
-      app_ready: analysis.app_ready,
-      strengths: analysis.strengths || [],
-      findings: analysis.findings || [],
-    }
+      const record = {
+        filename: file.name,
+        ats_score: analysis.ats_score,
+        content_quality: analysis.content_quality,
+        ats_structure: analysis.ats_structure,
+        job_optimization: analysis.job_optimization,
+        writing_quality: analysis.writing_quality,
+        app_ready: analysis.app_ready,
+        strengths: analysis.strengths || [],
+        findings: analysis.findings || [],
+        content: analysis.extracted_content || {},  // ← now saving extracted content
+      }
 
       setStatus("saving")
       const saved = await createResume(record)
@@ -482,8 +492,18 @@ function AIReviewTab({ onSaved }) {
       </div>
 
       {status === "done" && result && (
-        <ScoreCard resume={result} eyebrow={`Analysis complete · ${result.filename}`} showDetails />
-      )}  
+        <>
+          <ScoreCard resume={result} eyebrow={`Analysis complete · ${result.filename}`} showDetails />
+          {result.id && (
+            <button
+              onClick={() => navigate(`/resume-builder/${result.id}`)}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-slate-950 text-sm font-bold hover:bg-cyan-400 transition-all"
+            >
+              <Sparkles size={15} /> Fix these issues in Resume Builder
+            </button>
+          )}
+        </>
+      )}
     </div>
   )
 }
@@ -527,7 +547,7 @@ export default function Documents() {
             resumes={resumes}
             loading={loading}
             error={error}
-            onNewResume={() => navigate('/resume')}
+            onNewResume={() => navigate('/resume-builder/new')}
           />
         )}
         {active === "resumes" && (

@@ -34,6 +34,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 OLLAMA_API = "http://localhost:11434/api/generate"
+OLLAMA_MODEL = "llama3.2:3b"
 
 class RewriteRequest(BaseModel):
     bullet: str
@@ -174,7 +175,7 @@ async def summarize_endpoint(request: SummarizeRequest):
             return {"summary": ""}
 
         response = requests.post(OLLAMA_API, json={
-            "model": "gemma2",
+            "model": OLLAMA_MODEL,
             "prompt": f"Generate a professional one paragraph resume summary from these points:\n{formatted}",
             "stream": False
         })
@@ -236,71 +237,112 @@ async def generate_pdf_endpoint(request: ResumeRequest):
 @app.post("/analyze-resume/")
 async def analyze_resume(file: UploadFile = File(...)):
     try:
-        # Read PDF bytes
         pdf_bytes = await file.read()
-        
-        # Extract text from PDF
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
         resume_text = ""
         for page in pdf_reader.pages:
             resume_text += page.extract_text() or ""
-        
+
         if not resume_text.strip():
             raise HTTPException(status_code=400, detail="Could not extract text from PDF")
 
-        # Send to Ollama for analysis
-        prompt = f"""You are an expert ATS resume analyzer and career coach reviewing resumes like a strict recruiter panel.
-Analyze this resume and return ONLY a valid JSON object with exactly these fields:
+        resume_text = resume_text[:2500]
+
+        # ---- CALL 1: scoring + findings (small, fast) ----
+        score_prompt = f"""You are an expert ATS resume analyzer. Analyze this resume and return ONLY this JSON:
 
 {{
-  "ats_score": <number 0-100, sum of the 5 categories below>,
-  "content_quality": <number 0-40>,
-  "ats_structure": <number 0-20>,
-  "job_optimization": <number 0-25>,
-  "writing_quality": <number 0-10>,
-  "app_ready": <number 0-5>,
-  "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
+  "ats_score": <0-100>,
+  "content_quality": <0-40>,
+  "ats_structure": <0-20>,
+  "job_optimization": <0-25>,
+  "writing_quality": <0-10>,
+  "app_ready": <0-5>,
+  "strengths": ["strength 1", "strength 2", "strength 3"],
   "findings": [
-    {{
-      "issue": "short title of the problem, 3-6 words",
-      "detail": "one or two sentence explanation of the problem and a specific fix, written like a recruiter giving feedback",
-      "severity": "high"
-    }}
+    {{"issue": "short title", "detail": "explanation and fix", "severity": "high"}}
   ]
 }}
 
-Return 3 to 6 findings, ordered most important first. severity must be one of: "high", "medium", "low".
-Be specific — reference actual content from the resume, not generic advice.
+Return 3-6 findings, most important first, severity is "high", "medium", or "low".
 
-Resume text:
-{resume_text[:3000]}
+Resume:
+{resume_text}
 
-Return ONLY the JSON object, no explanation, no markdown."""
+Return ONLY the JSON, no other text."""
 
-        response = requests.post(OLLAMA_API, json={
-            "model": "gemma2",
-            "prompt": prompt,
-            "stream": False
-        })
+        score_response = requests.post(OLLAMA_API, json={
+            "model": OLLAMA_MODEL,
+            "prompt": score_prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 900}
+        }, timeout=180)
 
-        if response.status_code != 200:
-            raise Exception(f"Ollama error: {response.text}")
+        if score_response.status_code != 200:
+            raise Exception(f"Ollama error (scoring): {score_response.text}")
 
-        raw = response.json().get("response", "").strip()
+        try:
+            score_json_body = score_response.json()
+        except json.JSONDecodeError as je:
+            raise Exception(
+                f"Ollama's HTTP response wasn't valid JSON: {je}. "
+                f"Raw HTTP body: {score_response.text[:500]}"
+            )
 
-        # Extract JSON from response
-        json_match = re.search(r'\{.*\}', raw, re.DOTALL)
-        if not json_match:
-            raise Exception("Could not parse AI response as JSON")
+        score_raw = score_json_body.get("response", "").strip()
+        print("---- RAW SCORE RESPONSE ----")
+        print(score_raw)
+        print("----------------------------")
+        score_match = re.search(r'\{.*\}', score_raw, re.DOTALL)
+        if not score_match:
+            raise Exception(f"Could not parse scoring JSON. Raw model output: {score_raw[:500]}")
+        try:
+            score_result = json.loads(score_match.group())
+        except json.JSONDecodeError as je:
+            raise Exception(f"Scoring JSON was malformed: {je}. Raw match: {score_match.group()[:500]}")
 
-        result = json.loads(json_match.group())
+        # ---- CALL 2: content extraction (small, fast, separate) ----
+        extract_prompt = f"""Extract structured resume data. Return ONLY this JSON, pulling exact text from the resume:
 
-        # Defensive defaults in case the model skips a field
-        result.setdefault("strengths", [])
-        result.setdefault("findings", [])
-        result["filename"] = file.filename
+{{
+  "personal": {{"name": "", "email": "", "phone": ""}},
+  "summary": "",
+  "education": [{{"school": "", "degree": "", "field": "", "start_date": "", "end_date": "", "current": false}}],
+  "experience": [{{"role": "", "company": "", "location": "", "start_date": "", "end_date": "", "current": false, "bullets": []}}],
+  "projects": [{{"name": "", "tech": "", "bullets": []}}],
+  "skills": [{{"name": "", "category": "Other"}}]
+}}
 
-        return result
+Do not invent details — use empty string/array if not present.
+
+Resume:
+{resume_text}
+
+Return ONLY the JSON, no other text."""
+
+        extract_response = requests.post(OLLAMA_API, json={
+            "model": OLLAMA_MODEL,
+            "prompt": extract_prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 1200}
+        }, timeout=180)
+
+        extracted_content = {}
+        if extract_response.status_code == 200:
+            extract_raw = extract_response.json().get("response", "").strip()
+            extract_match = re.search(r'\{.*\}', extract_raw, re.DOTALL)
+            if extract_match:
+                try:
+                    extracted_content = json.loads(extract_match.group())
+                except json.JSONDecodeError:
+                    extracted_content = {}
+
+        score_result.setdefault("strengths", [])
+        score_result.setdefault("findings", [])
+        score_result["extracted_content"] = extracted_content
+        score_result["filename"] = file.filename
+
+        return score_result
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="AI returned invalid JSON")
@@ -323,7 +365,7 @@ Original: {request.bullet}
 Rewritten:"""
 
         response = requests.post(OLLAMA_API, json={
-            "model": "gemma2",
+            "model": OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False
         })
