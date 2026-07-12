@@ -56,11 +56,6 @@ function Glass({ className = "", children, ...rest }) {
 const inputStyle = "w-full px-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400/40 focus:bg-white/[0.07] transition-all"
 const labelStyle = "block text-xs font-medium text-slate-400 mb-1.5"
 
-
-
-
-
-
 function FindingsChecklist({ findings, dismissed, onToggle }) {
   const active = findings.filter((_, i) => !dismissed.has(i))
   if (findings.length === 0) return null
@@ -567,6 +562,7 @@ export default function ResumeEditor() {
   const saveTimer = useRef(null)
   const [findings, setFindings] = useState([])
   const [dismissedFindings, setDismissedFindings] = useState(new Set())
+  const [leftPanel, setLeftPanel] = useState("edit") // "edit" | "checklist"
 
   // Load existing resume, or prefill personal info for new ones
   useEffect(() => {
@@ -704,21 +700,54 @@ export default function ResumeEditor() {
         {/* Editor + Preview */}
         <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-5 items-start">
           <div className="space-y-3">
-            <FindingsChecklist
-              findings={findings}
-              dismissed={dismissedFindings}
-              onToggle={(i) => setDismissedFindings(prev => {
-                const next = new Set(prev)
-                next.has(i) ? next.delete(i) : next.add(i)
-                return next
-              })}
-            />
-            <PersonalSection personal={content.personal} onChange={v => scheduleSave({ ...content, personal: v })} />
-            <SummarySection summary={content.summary} onChange={v => scheduleSave({ ...content, summary: v })} />
-            <EducationSection items={content.education} onChange={v => scheduleSave({ ...content, education: v })} />
-            <ExperienceSection items={content.experience} onChange={v => scheduleSave({ ...content, experience: v })} />
-            <ProjectsSection items={content.projects} onChange={v => scheduleSave({ ...content, projects: v })} />
-            <SkillsSection skills={content.skills} onChange={v => scheduleSave({ ...content, skills: v })} />
+            <div className="inline-flex items-center gap-1 rounded-full border border-white/[0.1] bg-white/[0.04] p-1">
+              <button
+                onClick={() => setLeftPanel("edit")}
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                  leftPanel === "edit" ? "bg-white text-black" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => setLeftPanel("checklist")}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                  leftPanel === "checklist" ? "bg-white text-black" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Checklist
+                {findings?.length > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
+                      leftPanel === "checklist" ? "bg-black/10 text-black" : "bg-cyan-400/15 text-cyan-300"
+                    }`}
+                  >
+                    {findings.filter((_, i) => !dismissedFindings.has(i)).length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {leftPanel === "checklist" ? (
+              <FindingsChecklist
+                findings={findings}
+                dismissed={dismissedFindings}
+                onToggle={(i) => setDismissedFindings(prev => {
+                  const next = new Set(prev)
+                  next.has(i) ? next.delete(i) : next.add(i)
+                  return next
+                })}
+              />
+            ) : (
+              <>
+                <PersonalSection personal={content.personal} onChange={v => scheduleSave({ ...content, personal: v })} />
+                <SummarySection summary={content.summary} onChange={v => scheduleSave({ ...content, summary: v })} />
+                <EducationSection items={content.education} onChange={v => scheduleSave({ ...content, education: v })} />
+                <ExperienceSection items={content.experience} onChange={v => scheduleSave({ ...content, experience: v })} />
+                <ProjectsSection items={content.projects} onChange={v => scheduleSave({ ...content, projects: v })} />
+                <SkillsSection skills={content.skills} onChange={v => scheduleSave({ ...content, skills: v })} />
+              </>
+            )}
           </div>
 
           <div className="lg:sticky lg:top-4">

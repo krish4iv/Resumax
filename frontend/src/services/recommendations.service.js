@@ -2,7 +2,7 @@ import axios from "axios";
 
 const RECOMMENDATIONS_API_URL = "http://localhost:5003";
 
-async function getRecommendations(uid) {
+export const getRecommendations = async (uid) => {
   try {
     const response = await axios.get(
       `${RECOMMENDATIONS_API_URL}/api/recommend_jobs/${uid}`
@@ -14,6 +14,4 @@ async function getRecommendations(uid) {
   }
 }
 
-export default {
-    getRecommendations
-};
+

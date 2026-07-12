@@ -410,7 +410,6 @@ function Dropzone({ file, onFile, disabled }) {
 }
 
 function AIReviewTab({ onSaved }) {
-  const navigate = useNavigate()
   const [file, setFile] = useState(null)
   const [status, setStatus] = useState("idle")
   const [error, setError] = useState(null)
@@ -424,24 +423,25 @@ function AIReviewTab({ onSaved }) {
   }
 
   async function handleAnalyze() {
-    if (!file) return
-    setStatus("analyzing")
-    setError(null)
-    try {
-      const analysis = await analyzeResume(file)
+  if (!file) return
+  setStatus("analyzing")
+  setError(null)
+  try {
+    const analysis = await analyzeResume(file)
+    console.log('FULL ANALYSIS RESPONSE:', analysis)  // ← add here
 
-      const record = {
-        filename: file.name,
-        ats_score: analysis.ats_score,
-        content_quality: analysis.content_quality,
-        ats_structure: analysis.ats_structure,
-        job_optimization: analysis.job_optimization,
-        writing_quality: analysis.writing_quality,
-        app_ready: analysis.app_ready,
-        strengths: analysis.strengths || [],
-        findings: analysis.findings || [],
-        content: analysis.extracted_content || {},  // ← now saving extracted content
-      }
+    const record = {
+      filename: file.name,
+      content: analysis.extracted_content || {},
+      ats_score: analysis.ats_score,
+      content_quality: analysis.content_quality,
+      ats_structure: analysis.ats_structure,
+      job_optimization: analysis.job_optimization,
+      writing_quality: analysis.writing_quality,
+      app_ready: analysis.app_ready,
+      strengths: analysis.strengths || [],
+      findings: analysis.findings || [],
+    }
 
       setStatus("saving")
       const saved = await createResume(record)
@@ -492,18 +492,8 @@ function AIReviewTab({ onSaved }) {
       </div>
 
       {status === "done" && result && (
-        <>
-          <ScoreCard resume={result} eyebrow={`Analysis complete · ${result.filename}`} showDetails />
-          {result.id && (
-            <button
-              onClick={() => navigate(`/resume-builder/${result.id}`)}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-slate-950 text-sm font-bold hover:bg-cyan-400 transition-all"
-            >
-              <Sparkles size={15} /> Fix these issues in Resume Builder
-            </button>
-          )}
-        </>
-      )}
+        <ScoreCard resume={result} eyebrow={`Analysis complete · ${result.filename}`} showDetails />
+      )}  
     </div>
   )
 }

@@ -10,6 +10,7 @@ import {
 import { useSelector } from 'react-redux'
 import { saveJob } from '../services/saveJobs.service.js'
 import { getApplications, createApplication } from '../services/application.service.js'
+import { getRecommendations } from '../services/recommendations.service.js'
 
 const jobTypes = [
   { value: '',           label: 'Any level'  },
@@ -174,7 +175,7 @@ const Jobs = () => {
     try {
       setRecLoading(true)
       setRecError(null)
-      const data = await jobsScraperService.getRecommendedJobs(uid)
+      const data = await getRecommendations(uid)
       const mapped = Array.isArray(data) ? data.map(mapRecommendedJob) : []
       setRecJobs(mapped)
       setSelectedRecId(mapped[0]?.id ?? null)

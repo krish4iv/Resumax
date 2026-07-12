@@ -2,10 +2,11 @@ import { Resume } from "../models/index.js";
 
 async function createResume(req, res) {
     try {
-        const { filename, ats_score, content_quality, ats_structure, job_optimization, writing_quality, app_ready, strengths, findings } = req.body
+        const { filename, content, ats_score, content_quality, ats_structure, job_optimization, writing_quality, app_ready, strengths, findings } = req.body
         const user_id = req.user.uid;
         const resume = await Resume.create({
             filename,
+            content,
             ats_score,
             content_quality,
             ats_structure,

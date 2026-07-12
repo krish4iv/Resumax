@@ -167,6 +167,42 @@ template_env = jinja2.Environment(
     loader=jinja2.FileSystemLoader("templates"),
 )
 
+
+def clean_extracted_content(data):
+    """Strip placeholder/empty entries and fix common email/phone mixups
+    coming out of the extraction LLM call."""
+
+    def is_meaningful(entry):
+        # An entry is meaningful if at least one string field is non-empty
+        # or any bullets list is non-empty
+        for v in entry.values():
+            if isinstance(v, str) and v.strip():
+                return True
+            if isinstance(v, list) and any(str(x).strip() for x in v):
+                return True
+        return False
+
+    for key in ("education", "experience", "projects", "skills"):
+        if key in data and isinstance(data[key], list):
+            data[key] = [e for e in data[key] if isinstance(e, dict) and is_meaningful(e)]
+
+    # basic email/phone sanity fix — if the email field doesn't look like an
+    # email but contains one, extract it; move any leftover text (often a
+    # phone number, username, or location) to phone if phone is empty
+    personal = data.get("personal", {})
+    email_field = personal.get("email", "") or ""
+    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', email_field)
+    if email_match and email_match.group() != email_field.strip():
+        leftover = email_field.replace(email_match.group(), "").strip()
+        personal["email"] = email_match.group()
+        if leftover and not personal.get("phone", "").strip():
+            phone_match = re.search(r'[\d][\d\s\-\+\(\)]{6,}', leftover)
+            personal["phone"] = phone_match.group().strip() if phone_match else ""
+        data["personal"] = personal
+
+    return data
+
+
 @app.post("/summarize/")
 async def summarize_endpoint(request: SummarizeRequest):
     try:
@@ -246,7 +282,7 @@ async def analyze_resume(file: UploadFile = File(...)):
         if not resume_text.strip():
             raise HTTPException(status_code=400, detail="Could not extract text from PDF")
 
-        resume_text = resume_text[:2500]
+        resume_text = resume_text[:6000]
 
         # ---- CALL 1: scoring + findings (small, fast) ----
         score_prompt = f"""You are an expert ATS resume analyzer. Analyze this resume and return ONLY this JSON:
@@ -302,7 +338,7 @@ Return ONLY the JSON, no other text."""
             raise Exception(f"Scoring JSON was malformed: {je}. Raw match: {score_match.group()[:500]}")
 
         # ---- CALL 2: content extraction (small, fast, separate) ----
-        extract_prompt = f"""Extract structured resume data. Return ONLY this JSON, pulling exact text from the resume:
+        extract_prompt = f"""Extract structured resume data. Return ONLY this JSON:
 
 {{
   "personal": {{"name": "", "email": "", "phone": ""}},
@@ -310,10 +346,19 @@ Return ONLY the JSON, no other text."""
   "education": [{{"school": "", "degree": "", "field": "", "start_date": "", "end_date": "", "current": false}}],
   "experience": [{{"role": "", "company": "", "location": "", "start_date": "", "end_date": "", "current": false, "bullets": []}}],
   "projects": [{{"name": "", "tech": "", "bullets": []}}],
-  "skills": [{{"name": "", "category": "Other"}}]
+  "skills": [{{"name": "", "category": ""}}]
 }}
 
-Do not invent details — use empty string/array if not present.
+Rules:
+- "email" must contain ONLY a valid email address (e.g. name@domain.com). Never put a phone number in this field.
+- "phone" must contain ONLY a phone number (digits, spaces, +, -, parentheses). Never put usernames, links, or location text in this field.
+- If a value like a GitHub/LinkedIn username or city appears near contact info, ignore it — it does not belong in personal.name, email, or phone.
+- Fix obvious PDF-extraction spacing errors when copying text (e.g. "r etail" -> "retail", "Expr ess.js" -> "Express.js") so bullets and text read as normal, correctly-spaced words.
+- Do NOT include placeholder entries. If there is no education listed, return "education": []. If there are no skills listed, return "skills": []. Never return an array containing an object where all fields are empty.
+- Only include an item in education/experience/projects/skills if it has real, non-empty data from the resume.
+- Do not invent details — omit fields/entries you cannot find rather than guessing.
+- For skills, assign a real, specific "category" based on what the skill actually is — e.g. "Programming Languages", "Frameworks & Libraries", "Databases", "Cloud & DevOps", "Tools". If the resume already groups skills under its own headings (e.g. "Web Development", "Databases"), reuse those exact category names instead of inventing new ones. Only use "Other" if a skill genuinely doesn't fit any sensible category — do not use it as a default.
+- Preserve the resume's own section groupings and ordering wherever possible (e.g. keep projects in the order they appear, keep skill categories as the resume author organized them) rather than reorganizing into a different structure.
 
 Resume:
 {resume_text}
@@ -324,18 +369,27 @@ Return ONLY the JSON, no other text."""
             "model": OLLAMA_MODEL,
             "prompt": extract_prompt,
             "stream": False,
-            "options": {"temperature": 0.1, "num_predict": 1200}
+            "options": {"temperature": 0.1, "num_predict": 2000}
         }, timeout=180)
 
         extracted_content = {}
         if extract_response.status_code == 200:
             extract_raw = extract_response.json().get("response", "").strip()
+            print("---- RAW EXTRACT RESPONSE ----")
+            print(extract_raw)
+            print("-------------------------------")
             extract_match = re.search(r'\{.*\}', extract_raw, re.DOTALL)
             if extract_match:
                 try:
                     extracted_content = json.loads(extract_match.group())
-                except json.JSONDecodeError:
-                    extracted_content = {}
+                    extracted_content = clean_extracted_content(extracted_content)
+                except json.JSONDecodeError as je:
+                    print(f"Extraction JSON parse failed: {je}")
+                    print(f"Raw match: {extract_match.group()[:500]}")
+            else:
+                print(f"No JSON object found in extraction output. Raw: {extract_raw[:500]}")
+        else:
+            print(f"Extraction call failed with status {extract_response.status_code}: {extract_response.text[:500]}")
 
         score_result.setdefault("strengths", [])
         score_result.setdefault("findings", [])
