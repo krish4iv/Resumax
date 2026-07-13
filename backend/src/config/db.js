@@ -16,7 +16,13 @@ const sequelize = new Sequelize(
                 require: true,
                 rejectUnauthorized: false
             }
-        }
+        },
+        pool: {
+            max: 10,
+            min: 2,        // keep at least 2 connections warm instead of closing to 0 when idle
+            acquire: 30000,
+            idle: 10000,
+        },
     }
 );
 

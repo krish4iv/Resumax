@@ -14,7 +14,7 @@ import experienceRoutes from './src/routes/experience.routes.js'
 import educationRoutes from './src/routes/education.routes.js'
 import projectRoutes from './src/routes/project.routes.js'
 import resumeRoutes from './src/routes/resume.routes.js'
-
+import interviewRoutes from './src/routes/interview.routes.js'
 
 
 const app = express();
@@ -40,6 +40,7 @@ app.use('/api/experience', authMiddleware, experienceRoutes)
 app.use('/api/education', authMiddleware, educationRoutes)
 app.use('/api/projects', authMiddleware, projectRoutes)
 app.use('/api/resumes', authMiddleware, resumeRoutes)
+app.use('/api/interview', authMiddleware, interviewRoutes)
  
 
 app.use((req, res) => {
