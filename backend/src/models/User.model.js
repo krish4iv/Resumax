@@ -31,7 +31,7 @@ const User = sequelize.define('User',{
     allowNull: true
    },
    skills: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+    type: DataTypes.JSONB,
     defaultValue: []
    },
    preferred_role: {
@@ -40,6 +40,18 @@ const User = sequelize.define('User',{
    },
    location: {
     type: DataTypes.STRING,
+    allowNull: true
+   },
+   target_companies: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: []
+   },
+   industries: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: []
+   },
+   comp_floor: {
+    type: DataTypes.INTEGER,
     allowNull: true
    }
 },{

@@ -1,5 +1,5 @@
 import Job from "./Jobs.model.js"
-import User from "./user.model.js"
+import User from "./User.model.js"
 import sequelize from "../config/db.js"
 import Application from "./application.model.js"
 import SavedJob from "./savedJob.model.js"

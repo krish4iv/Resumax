@@ -8,7 +8,7 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Jobs from './pages/Jobs.jsx'
-import ProfileSetup from './pages/ProfileSetup.jsx'
+import Profile from './pages/Profile.jsx'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import News from './pages/News'
 import Documents from './pages/Document.jsx'
@@ -38,7 +38,7 @@ const App = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/profile-setup" element={<ProfileSetup />} />
+      <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
       <Route path="/dashboard" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
       <Route path="/jobs" element={<ProtectedRoutes><Jobs /></ProtectedRoutes>} />
       <Route path="/news" element={<ProtectedRoutes><News /></ProtectedRoutes>} />
