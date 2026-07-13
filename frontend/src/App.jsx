@@ -12,7 +12,8 @@ import Profile from './pages/Profile.jsx'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import News from './pages/News'
 import Documents from './pages/Document.jsx'
-import ResumeEditor from './pages/ResumeEditor'
+import ResumeEditor from './pages/ResumeEditor.jsx'
+import Interview from './pages/Interview.jsx'
 
 
 
@@ -45,6 +46,7 @@ const App = () => {
       <Route path="/resume-builder/new" element={<ProtectedRoutes><ResumeEditor /></ProtectedRoutes>} />
       <Route path="/resume-builder/:id" element={<ProtectedRoutes><ResumeEditor /></ProtectedRoutes>} />
       <Route path="/documents" element={<ProtectedRoutes><Documents /></ProtectedRoutes>} />
+      <Route path="/interview" element={<ProtectedRoutes><Interview /></ProtectedRoutes>} />
     </Routes>
   )
 }

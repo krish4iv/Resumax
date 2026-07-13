@@ -75,9 +75,25 @@ async function updateResume(req, res) {
   }
 }
 
+async function deleteResume(req, res) {
+  try {
+    const { id } = req.params
+    const user_id = req.user.uid
+    const resume = await Resume.findOne({ where: { id, user_id } })
+    if (!resume) return res.status(404).json({ message: 'Resume not found' })
+
+    await resume.destroy()
+
+    res.status(200).json({ message: 'Resume deleted' })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
 export default {
   createResume,
   getAllResumes,
   getResumeById,
-  updateResume 
+  updateResume,
+  deleteResume
 }

@@ -5,24 +5,33 @@ from fastapi.staticfiles import StaticFiles
 from typing import List
 from pydantic import BaseModel
 from pathlib import Path
-import subprocess  #This lets Python execute commands on your computer.
-import requests #This lets Python send requests to the internet.
-import jinja2 #This lets Python generate text files.
-import uuid #This lets Python generate unique IDs.
-import os #This lets Python interact with your computer's file system.
+import subprocess
+import requests
+import jinja2
+import uuid
+import os
 from fastapi import UploadFile, File
-import PyPDF2 #This lets Python read PDF files.
-import io #This lets Python handle data in memory.
-import json #This lets Python work with JSON data.
-import re #This lets Python work with regular expressions.
+import PyPDF2
+import io
+import json
+import re
+from dotenv import load_dotenv
+
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 PDFLATEX_PATH = r"C:\Program Files\MiKTeX\miktex\bin\x64\pdflatex.exe"
+
+OLLAMA_API = os.getenv("OLLAMA_API_URL")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
+PORT = int(os.getenv("RESUME_BUILDER_PORT"))
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,8 +42,6 @@ os.makedirs("templates", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-OLLAMA_API = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3.2:3b"
 
 class RewriteRequest(BaseModel):
     bullet: str
@@ -447,4 +454,4 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8009)
+    uvicorn.run(app, host="127.0.0.1", port=PORT)

@@ -38,13 +38,11 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         if (!auth.currentUser) return
-        const token = await auth.currentUser.getIdToken()
-        const headers = { Authorization: `Bearer ${token}` }
 
         // Fetch jobs and applications in parallel
         const [jobsRes, appsRes] = await Promise.allSettled([
-          api.get('/jobs', { headers }),
-          api.get('/applications', { headers }),
+          api.get('/jobs'),
+          api.get('/applications'),
         ])
 
         if (jobsRes.status === 'fulfilled') setJobs(jobsRes.value.data)

@@ -1,14 +1,22 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from jobspy import scrape_jobs
 import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
 
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+PORT = int(os.getenv("JOB_SCRAPER_PORT"))
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,11 +40,10 @@ async def get_jobs(search_term: str, location: str, results_wanted: int = 200):
     if jobs.empty:
         return {"message": "No jobs found"}
 
-    # ✅ Convert NaN values explicitly to empty strings
     jobs = jobs.astype(str).replace("nan", "")
 
     return jobs.to_dict(orient="records")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=PORT)

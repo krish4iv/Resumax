@@ -1,17 +1,14 @@
-import axios from "axios";
+// src/services/news.service.js
+import { createExternalApi } from './externalApi.js'
+import { API_URLS } from '../config/apiConfig.js'
 
-const NEWS_API_URL = "http://localhost:8001";
+const newsApi = createExternalApi(API_URLS.news)
 
 async function getNews() {
-    try {
-        const response = await axios.get(`${NEWS_API_URL}/news`);
-        return response.data;
-    } catch (error) {
-        console.error('Failed to fetch news:', error);
-        throw error;
-    }
+  const response = await newsApi.get('/news')
+  return response.data
 }
 
 export default {
-    getNews
-};
+  getNews,
+}

@@ -5,11 +5,19 @@ import pandas as pd
 from flask import Flask, jsonify
 from flask_cors import CORS
 from fuzzywuzzy import fuzz
+from pathlib import Path
+from dotenv import load_dotenv
+
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+NODE_API = os.getenv("NODE_API_URL")
+JOB_SCRAPER_URL = os.getenv("JOB_SCRAPER_URL")
+PORT = int(os.getenv("JOB_RECOMMENDATION_PORT"))
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 
 app = Flask(__name__)
-CORS(app)
-
-NODE_API = "http://localhost:5000"
+CORS(app, origins=[FRONTEND_ORIGIN], supports_credentials=True)
 
 COMMON_SKILLS = [
     "javascript", "html", "css", "react", "angular", "vue", "typescript",
@@ -68,7 +76,6 @@ def extract_skills_from_title(title):
 @app.route('/api/recommend_jobs/<uid>', methods=['GET'])
 def recommend_jobs(uid):
     try:
-        # Get user from Node.js API
         response = requests.get(f"{NODE_API}/api/users/{uid}", timeout=10)
         if response.status_code != 200:
             return jsonify({"error": "User not found"}), 404
@@ -78,9 +85,8 @@ def recommend_jobs(uid):
         user_skills = [s.lower() for s in (user_data.get("skills", []) or [])]
         location = user_data.get("location", "remote") or "remote"
 
-        # Scrape jobs using job scraper service
         scrape_response = requests.get(
-            "http://localhost:8000/scrape_jobs",
+            f"{JOB_SCRAPER_URL}/scrape_jobs",
             params={
                 "search_term": preferred_role,
                 "location": location,
@@ -93,7 +99,6 @@ def recommend_jobs(uid):
         if isinstance(jobs, dict) and "message" in jobs:
             return jsonify([])
 
-        # Score each job
         scored_jobs = []
         for job in jobs:
             job_title    = str(job.get("title", "")).lower()
@@ -104,13 +109,9 @@ def recommend_jobs(uid):
             if not job_skills:
                 job_skills = extract_skills_from_title(job_title)
 
-            # Title score
             title_score = 100 if fuzzy_match(preferred_role, job_title, 70) else 0
-
-            # Location score
             location_score = fuzz.partial_ratio(location, job_location) if location and job_location else 50
 
-            # Skills score
             if user_skills and job_skills:
                 matches = sum(1 for us in user_skills if any(fuzzy_match(us, js, 70) for js in job_skills))
                 skills_score = int((matches / len(user_skills)) * 100)
@@ -138,4 +139,4 @@ def recommend_jobs(uid):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(port=5003, debug=True)
+    app.run(port=PORT, debug=False)

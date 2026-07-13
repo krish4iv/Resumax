@@ -1,32 +1,20 @@
-import axios from "axios";
+// src/services/skillAnalysis.service.js
+import { createExternalApi } from './externalApi.js'
+import { API_URLS } from '../config/apiConfig.js'
 
-const SKILL_ANALYSIS_API_URL = "http://localhost:5002";
+const skillAnalysisApi = createExternalApi(API_URLS.skillAnalysis)
 
 async function getSkillGapAnalysis(uid) {
-  try {
-    const response = await axios.get(
-      `${SKILL_ANALYSIS_API_URL}/api/skill_gap_analysis/${uid}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch skill gap analysis:', error);
-    throw error;
-  }
+  const response = await skillAnalysisApi.get(`/api/skill_gap_analysis/${uid}`)
+  return response.data
 }
 
 async function getTrendingSkills() {
-  try {
-    const response = await axios.get(
-      `${SKILL_ANALYSIS_API_URL}/api/trending_skills`
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch trending skills:', error);
-    throw error;
-  }
+  const response = await skillAnalysisApi.get('/api/trending_skills')
+  return response.data
 }
 
 export default {
-    getSkillGapAnalysis,
-    getTrendingSkills
-};
+  getSkillGapAnalysis,
+  getTrendingSkills,
+}

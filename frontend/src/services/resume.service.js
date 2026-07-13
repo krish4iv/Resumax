@@ -1,110 +1,60 @@
-import axios from 'axios'
-import { auth } from '../config/firebase.js'
+// src/services/resume.service.js
+import api from './api.service.js'
+import { createExternalApi } from './externalApi.js'
+import { API_URLS } from '../config/apiConfig.js'
 
-const RESUME_API = 'http://localhost:8009'
-const BACKEND_API = 'http://localhost:5000/api'
-
-async function getAuthHeaders() {
-  const token = await auth.currentUser.getIdToken()
-  return { Authorization: `Bearer ${token}` }
-}
+const resumeAI = createExternalApi(API_URLS.resumeAI)
 
 /* ---------------------------------------------------------------
    Resume CRUD — talks to Node.js backend at /api/resumes
-   (protected by Firebase auth middleware)
+   (protected by Firebase auth middleware, handled by `api`)
 ----------------------------------------------------------------*/
 export const getResumes = async () => {
-  try {
-    const headers = await getAuthHeaders()
-    const response = await axios.get(`${BACKEND_API}/resumes`, { headers })
-    return response.data
-  } catch (error) {
-    console.error('Failed to fetch resumes:', error)
-    throw error
-  }
+  const response = await api.get('/resumes')
+  return response.data
 }
 
 export const getResumeById = async (id) => {
-  try {
-    const headers = await getAuthHeaders()
-    const response = await axios.get(`${BACKEND_API}/resumes/${id}`, { headers })
-    return response.data
-  } catch (error) {
-    console.error('Failed to fetch resume:', error)
-    throw error
-  }
+  const response = await api.get(`/resumes/${id}`)
+  return response.data
 }
 
 export const createResume = async (resumeData) => {
-  try {
-    const headers = await getAuthHeaders()
-    const response = await axios.post(`${BACKEND_API}/resumes`, resumeData, { headers })
-    return response.data
-  } catch (error) {
-    console.error('Failed to save resume:', error)
-    throw error
-  }
+  const response = await api.post('/resumes', resumeData)
+  return response.data
 }
 
 export const updateResumeContent = async (id, content, filename) => {
-  const headers = await getAuthHeaders()
-  const response = await axios.put(`${BACKEND_API}/resumes/${id}`, { content, filename }, { headers })
+  const response = await api.put(`/resumes/${id}`, { content, filename })
   return response.data
 }
 
 export const deleteResume = async (id) => {
-  try {
-    const headers = await getAuthHeaders()
-    const response = await axios.delete(`${BACKEND_API}/resumes/${id}`, { headers })
-    return response.data
-  } catch (error) {
-    console.error('Failed to delete resume:', error)
-    throw error
-  }
+  const response = await api.delete(`/resumes/${id}`)
+  return response.data
 }
 
 /* ---------------------------------------------------------------
-   AI microservice — FastAPI service on :8009
-   (no auth needed, runs locally)
+   AI microservice — FastAPI service (no auth needed, runs locally)
 ----------------------------------------------------------------*/
 export const analyzeResume = async (file) => {
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const response = await axios.post(`${RESUME_API}/analyze-resume/`, formData)
-    return response.data
-  } catch (error) {
-    console.error('Failed to analyze resume:', error)
-    throw error
-  }
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await resumeAI.post('/analyze-resume/', formData)
+  return response.data
 }
 
 export const summarizeBullets = async (bullets) => {
-  try {
-    const response = await axios.post(`${RESUME_API}/summarize/`, { bullets })
-    return response.data.summary
-  } catch (error) {
-    console.error('Failed to summarize:', error)
-    throw error
-  }
+  const response = await resumeAI.post('/summarize/', { bullets })
+  return response.data.summary
 }
 
 export const generatePDF = async (resumeData) => {
-  try {
-    const response = await axios.post(`${RESUME_API}/generate-pdf/`, resumeData)
-    return response.data.pdf_url
-  } catch (error) {
-    console.error('Failed to generate PDF:', error)
-    throw error
-  }
+  const response = await resumeAI.post('/generate-pdf/', resumeData)
+  return response.data.pdf_url
 }
 
 export const rewriteBullet = async (bullet) => {
-  try {
-    const response = await axios.post(`${RESUME_API}/rewrite-bullet/`, { bullet })
-    return response.data
-  } catch (error) {
-    console.error('Failed to rewrite bullet:', error)
-    throw error
-  }
+  const response = await resumeAI.post('/rewrite-bullet/', { bullet })
+  return response.data
 }

@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 import feedparser
 import requests
 import traceback
@@ -6,11 +9,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+PORT = int(os.getenv("NEWS_PORT"))
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
+
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,7 +33,6 @@ RSS_FEEDS = [
 ]
 
 def get_og_image(url):
-    """Extract Open Graph image from article URL"""
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         res = requests.get(url, timeout=3, headers=headers)
@@ -50,7 +58,7 @@ def get_news():
 
         for feed_url in RSS_FEEDS:
             feed = feedparser.parse(feed_url)
-            for entry in feed.entries[:10]:  # limit to 10 per feed
+            for entry in feed.entries[:10]:
                 if entry.link not in seen_urls:
                     seen_urls.add(entry.link)
                     image = get_og_image(entry.link)
@@ -75,4 +83,4 @@ def get_news():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8001)
+    uvicorn.run(app, host="127.0.0.1", port=PORT)

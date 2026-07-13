@@ -1,17 +1,14 @@
-import axios from "axios";
+// src/services/recommendations.service.js
+import { createExternalApi } from './externalApi.js'
+import { API_URLS } from '../config/apiConfig.js'
 
-const RECOMMENDATIONS_API_URL = "http://localhost:5003";
+const recommendationsApi = createExternalApi(API_URLS.recommendations)
 
 export const getRecommendations = async (uid) => {
-  try {
-    const response = await axios.get(
-      `${RECOMMENDATIONS_API_URL}/api/recommend_jobs/${uid}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch recommendations:', error);
-    throw error;
-  }
+  const response = await recommendationsApi.get(`/api/recommend_jobs/${uid}`)
+  return response.data
 }
 
-
+export default {
+  getRecommendations,
+}

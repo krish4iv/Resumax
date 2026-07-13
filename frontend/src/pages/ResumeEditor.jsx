@@ -7,6 +7,7 @@ import {
 } from "../services/resume.service.js"
 import api from "../services/api.service.js"
 import { auth } from "../config/firebase.js"
+import { API_URLS } from "../config/apiConfig.js"
 import {
   ArrowLeft, Plus, X, Sparkles, Loader2, Download,
   User, GraduationCap, Briefcase, FolderGit2, Wrench,
@@ -595,8 +596,7 @@ export default function ResumeEditor() {
         }
       } else {
         try {
-          const token = await auth.currentUser.getIdToken()
-          const res = await api.get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+          const res = await api.get("/auth/me")
           const user = res.data.user
           setContent(prev => ({
             ...prev,
@@ -649,7 +649,7 @@ export default function ResumeEditor() {
         projects: content.projects.map(p => ({ name: p.name, description: p.description })),
         template: "classic",
       })
-      window.open(`http://localhost:8009${url}`, "_blank")
+      window.open(`${API_URLS.resumeAI}${url}`, "_blank")
     } catch (err) {
       console.error("Failed to generate PDF:", err)
     } finally {

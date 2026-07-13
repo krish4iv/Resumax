@@ -6,11 +6,19 @@ import pandas as pd
 from flask import Flask, jsonify
 from flask_cors import CORS
 from fuzzywuzzy import fuzz
+from pathlib import Path
+from dotenv import load_dotenv
+
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+NODE_API = os.getenv("NODE_API_URL")
+JOB_SCRAPER_URL = os.getenv("JOB_SCRAPER_URL")
+PORT = int(os.getenv("SKILL_ANALYSIS_PORT"))
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 
 app = Flask(__name__)
-CORS(app)
-
-NODE_API = "http://localhost:5000"
+CORS(app, origins=[FRONTEND_ORIGIN], supports_credentials=True)
 
 # Load coursera courses
 COURSE_CSV_PATH = os.path.join(os.path.dirname(__file__), "coursera_courses.csv")
@@ -100,7 +108,7 @@ def get_trending_skills_from_jobs(search_term="software engineer", results_wante
     """Extract trending skills from scraped job descriptions"""
     try:
         response = requests.get(
-            f"http://localhost:8000/scrape_jobs",
+            f"{JOB_SCRAPER_URL}/scrape_jobs",
             params={
                 "search_term": search_term,
                 "location": "remote",
@@ -197,5 +205,5 @@ def skill_gap_analysis(uid):
         print(f"❌ Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(port=5002, debug=True)
+if __name__ == "__main__":
+    app.run(port=PORT, debug=False)

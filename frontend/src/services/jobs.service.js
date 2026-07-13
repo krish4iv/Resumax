@@ -1,23 +1,20 @@
-import axios from "axios";
+// src/services/jobs.service.js
+import { createExternalApi } from './externalApi.js'
+import { API_URLS } from '../config/apiConfig.js'
 
-const JOBS_API_URL = "http://localhost:8000";
+const jobScraperApi = createExternalApi(API_URLS.jobScraper)
 
 async function scrapeJobs(searchTerm, location, resultsWanted = 20) {
-  try {
-    const response = await axios.get(`${JOBS_API_URL}/scrape_jobs`, {
-      params: {
-        search_term: searchTerm,
-        location: location,
-        results_wanted: resultsWanted
-      }
-    })
-    return response.data
-  } catch (error) {
-    console.error('Failed to scrape jobs:', error)
-    throw error
-  }
+  const response = await jobScraperApi.get('/scrape_jobs', {
+    params: {
+      search_term: searchTerm,
+      location: location,
+      results_wanted: resultsWanted,
+    },
+  })
+  return response.data
 }
 
 export default {
-    scrapeJobs
-};
+  scrapeJobs,
+}
