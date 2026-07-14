@@ -14,7 +14,7 @@ import News from './pages/News'
 import Documents from './pages/Document.jsx'
 import ResumeEditor from './pages/ResumeEditor.jsx'
 import Interview from './pages/Interview.jsx'
-
+import SavedJobs from './pages/SavedJobs.jsx'
 
 
 
@@ -47,6 +47,7 @@ const App = () => {
       <Route path="/resume-builder/:id" element={<ProtectedRoutes><ResumeEditor /></ProtectedRoutes>} />
       <Route path="/documents" element={<ProtectedRoutes><Documents /></ProtectedRoutes>} />
       <Route path="/interview" element={<ProtectedRoutes><Interview /></ProtectedRoutes>} />
+      <Route path="/saved-jobs" element={<ProtectedRoutes><SavedJobs /></ProtectedRoutes>} />
     </Routes>
   )
 }

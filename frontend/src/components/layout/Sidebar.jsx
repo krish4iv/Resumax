@@ -6,7 +6,7 @@ import {
   PanelLeftClose, PanelLeft, Search, Sparkles,
   Home, Bot, Route, Briefcase, FileText, Target, User,
   Map, Rocket, BookOpen, Building2, MessagesSquare,
-  ClipboardList, Settings, LogOut,
+  ClipboardList, Settings, LogOut, Bookmark,
 } from "lucide-react"
 
 const MAIN_ITEMS = [
@@ -18,6 +18,7 @@ const MAIN_ITEMS = [
   { id: "interview", label: "Interview", icon: Target,        route: "/interview" },
   { id: "profile",   label: "Profile",   icon: User,          route: "/profile"   },
   { id: "documents", label: "Documents", icon: FileText,      route: "/documents" },
+  { id: "saved",     label: "Saved Jobs", icon: Bookmark,     route: "/saved-jobs" },
 ]
 
 const RESOURCE_ITEMS = [
