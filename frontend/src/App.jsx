@@ -15,7 +15,13 @@ import Documents from './pages/Document.jsx'
 import ResumeEditor from './pages/ResumeEditor.jsx'
 import Interview from './pages/Interview.jsx'
 import SavedJobs from './pages/SavedJobs.jsx'
-
+import Settings from './pages/Setting.jsx'
+import Roadmap from './pages/Roadmap.jsx'
+import ProjectsResource from './pages/ProjectsResource.jsx'
+import Guides from './pages/Guides.jsx'
+import SystemDesign from './pages/SystemDesign.jsx'
+import BehavioralQs from './pages/BehavioralQs.jsx'
+import Templates from './pages/Templates.jsx'
 
 
 
@@ -48,6 +54,14 @@ const App = () => {
       <Route path="/documents" element={<ProtectedRoutes><Documents /></ProtectedRoutes>} />
       <Route path="/interview" element={<ProtectedRoutes><Interview /></ProtectedRoutes>} />
       <Route path="/saved-jobs" element={<ProtectedRoutes><SavedJobs /></ProtectedRoutes>} />
+      <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} />
+
+      <Route path="/roadmaps" element={<ProtectedRoutes><Roadmap /></ProtectedRoutes>} />
+      <Route path="/projects" element={<ProtectedRoutes><ProjectsResource /></ProtectedRoutes>} />
+      <Route path="/guides" element={<ProtectedRoutes><Guides /></ProtectedRoutes>} />
+      <Route path="/system-design" element={<ProtectedRoutes><SystemDesign /></ProtectedRoutes>} />
+      <Route path="/behavioral" element={<ProtectedRoutes><BehavioralQs /></ProtectedRoutes>} />
+      <Route path="/templates" element={<ProtectedRoutes><Templates /></ProtectedRoutes>} />
     </Routes>
   )
 }
