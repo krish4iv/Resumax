@@ -21,7 +21,6 @@ const errorHandler = (err, req, res, next) => {
     message: isServerError ? "Something went wrong. Please try again." : err.message,
   })
 
-  next()
 }
 
 export default errorHandler

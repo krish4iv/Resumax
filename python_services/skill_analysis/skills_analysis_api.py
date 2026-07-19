@@ -3,11 +3,13 @@ import re
 import math
 import requests
 import pandas as pd
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from fuzzywuzzy import fuzz
 from pathlib import Path
 from dotenv import load_dotenv
+
+from firebase_auth import require_auth
 
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -16,6 +18,7 @@ NODE_API = os.getenv("NODE_API_URL")
 JOB_SCRAPER_URL = os.getenv("JOB_SCRAPER_URL")
 PORT = int(os.getenv("SKILL_ANALYSIS_PORT"))
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
 
 app = Flask(__name__)
 CORS(app, origins=[FRONTEND_ORIGIN], supports_credentials=True)
@@ -140,16 +143,27 @@ def get_trending_skills_from_jobs(search_term="software engineer", results_wante
 def safe_type(value):
     return None if value is None or (isinstance(value, float) and math.isnan(value)) else value
 
+# Not user-specific, no auth needed — unchanged
 @app.route('/api/trending_skills', methods=['GET'])
 def get_trending_skills():
     skills_data = get_trending_skills_from_jobs()
     return jsonify(skills_data["trending_skills"])
 
 @app.route('/api/skill_gap_analysis/<uid>', methods=['GET'])
+@require_auth
 def skill_gap_analysis(uid):
+    # Same fix as recommend_jobs: verify the caller's token and make sure
+    # they're only ever asking about their own uid.
+    if request.verified_uid != uid:
+        return jsonify({"error": "Forbidden"}), 403
+
     try:
         # Get user from our Node.js API
-        response = requests.get(f"{NODE_API}/api/users/{uid}", timeout=10)
+        response = requests.get(
+            f"{NODE_API}/api/users/{uid}",
+            headers={"X-Internal-Key": INTERNAL_API_KEY},
+            timeout=10,
+        )
         if response.status_code != 200:
             return jsonify({"error": "User not found"}), 404
 

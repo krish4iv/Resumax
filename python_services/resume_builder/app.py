@@ -17,6 +17,51 @@ import json
 import re
 from dotenv import load_dotenv
 
+# --- LaTeX escaping -------------------------------------------------------
+# Jinja2's autoescape is HTML-oriented and isn't enabled for .tex templates
+# anyway. Without this, a name/summary/skill containing LaTeX special
+# characters (\, $, %, &, _, {, }, ~, ^) can break the build or, worse,
+# attempt file inclusion via \input{...}. Every user-supplied string must
+# go through this before being handed to template.render().
+_LATEX_SPECIAL_CHARS = {
+    "\\": r"\textbackslash{}",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "_": r"\_",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
+
+
+def latex_escape(value):
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        value = str(value)
+    # backslash must be replaced first, or the backslashes introduced by
+    # the other replacements would themselves get escaped again
+    result = value.replace("\\", _LATEX_SPECIAL_CHARS["\\"])
+    for char, escaped in _LATEX_SPECIAL_CHARS.items():
+        if char == "\\":
+            continue
+        result = result.replace(char, escaped)
+    return result
+
+
+def latex_escape_deep(value):
+    """Recursively escape strings inside dicts/lists (for skills/projects)."""
+    if isinstance(value, str):
+        return latex_escape(value)
+    if isinstance(value, dict):
+        return {k: latex_escape_deep(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [latex_escape_deep(v) for v in value]
+    return value
+
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
@@ -245,12 +290,12 @@ async def generate_pdf_endpoint(request: ResumeRequest):
 
         template = template_env.get_template(f"{template_name}.tex")
         tex_content = template.render(
-            name=request.name,
-            email=request.email,
-            phone=request.phone,
-            summary=request.summary,
-            skills=request.skills,
-            projects=request.projects
+            name=latex_escape(request.name),
+            email=latex_escape(request.email),
+            phone=latex_escape(request.phone),
+            summary=latex_escape(request.summary),
+            skills=[latex_escape(s) for s in request.skills],
+            projects=[latex_escape_deep(p.dict()) for p in request.projects],
         )
 
         tex_path = os.path.join(temp_dir, "resume.tex")

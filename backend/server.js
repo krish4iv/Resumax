@@ -15,6 +15,8 @@ import educationRoutes from './src/routes/education.routes.js'
 import projectRoutes from './src/routes/project.routes.js'
 import resumeRoutes from './src/routes/resume.routes.js'
 import interviewRoutes from './src/routes/interview.routes.js'
+import errorHandler from './src/middleware/errorHandler.middleware.js'
+import { authLimiter, apiLimiter, resumeWriteLimiter } from './src/middleware/rateLimit.middleware.js'
 
 
 const app = express();
@@ -31,21 +33,32 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() })
 })
 
-app.use('/api/auth', authRoutes)
-app.use('/api/jobs', authMiddleware, jobRoutes)
+// Auth endpoints get their own tighter limiter (register/login are spam/
+// brute-force targets) applied before the router, on top of whatever
+// per-route authMiddleware the router itself uses.
+app.use('/api/auth', authLimiter, authRoutes)
+
+// user.routes.js now requires the internal service key itself
+// (see internalAuth.middleware.js) — was previously wide open here.
 app.use('/api/users', userRoutes)
-app.use('/api/applications', authMiddleware, applicationRoutes)
-app.use('/api/saved-jobs', authMiddleware, savedJobRoutes)
-app.use('/api/experience', authMiddleware, experienceRoutes)
-app.use('/api/education', authMiddleware, educationRoutes)
-app.use('/api/projects', authMiddleware, projectRoutes)
-app.use('/api/resumes', authMiddleware, resumeRoutes)
-app.use('/api/interview', authMiddleware, interviewRoutes)
- 
+
+app.use('/api/jobs', apiLimiter, authMiddleware, jobRoutes)
+app.use('/api/applications', apiLimiter, authMiddleware, applicationRoutes)
+app.use('/api/saved-jobs', apiLimiter, authMiddleware, savedJobRoutes)
+app.use('/api/experience', apiLimiter, authMiddleware, experienceRoutes)
+app.use('/api/education', apiLimiter, authMiddleware, educationRoutes)
+app.use('/api/projects', apiLimiter, authMiddleware, projectRoutes)
+app.use('/api/resumes', resumeWriteLimiter, authMiddleware, resumeRoutes)
+app.use('/api/interview', apiLimiter, authMiddleware, interviewRoutes)
+
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
 })
+
+// Must be registered LAST — catches everything asyncHandler forwards,
+// plus anything Express itself catches from a thrown/rejected handler.
+app.use(errorHandler)
 
 
 sequelize.sync({ alter: true })
