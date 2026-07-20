@@ -79,9 +79,7 @@ def extract_skills_from_title(title):
 @app.route('/api/recommend_jobs/<uid>', methods=['GET'])
 @require_auth
 def recommend_jobs(uid):
-    # Previously: uid was trusted straight from the URL, so anyone could
-    # request anyone else's recommendations. Now the caller must present a
-    # valid Firebase token, and it must actually be *their* uid.
+    
     if request.verified_uid != uid:
         return jsonify({"error": "Forbidden"}), 403
 
