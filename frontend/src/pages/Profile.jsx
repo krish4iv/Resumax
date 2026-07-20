@@ -33,7 +33,84 @@ const TABS = [
 ]
 
 /* ---------------------------------------------------------------
-   Overview tab — career memory progress + experience + education
+   Label maps — mirror the option lists in OnboardingWizard.jsx so
+   the raw enum values saved to the DB (e.g. "first_job") render as
+   the same human-readable copy the wizard showed at collection time.
+----------------------------------------------------------------*/
+const GOAL_LABELS = {
+  first_job: "Land my first job",
+  switch_company: "Switch to a better company",
+  level_up: "Level up, senior to staff",
+  big_tech: "Break into big tech",
+  exploring: "Just exploring for now",
+}
+const SITUATION_LABELS = {
+  employed_interviewing: "Employed, actively interviewing",
+  employed_looking: "Employed, casually looking",
+  searching_fulltime: "Searching full-time",
+  student_new_grad: "Student or new grad",
+  bootcamp: "Bootcamp or self-taught",
+  switching_into_tech: "Switching into tech",
+}
+const EXPERIENCE_LABELS = {
+  intern: "Intern",
+  new_grad: "New grad",
+  "1_2_yrs": "1 to 2 yrs",
+  "3_5_yrs": "3 to 5 yrs",
+  "6_9_yrs": "6 to 9 yrs",
+  "10_plus_yrs": "10+ yrs",
+}
+const CRAFT_LABELS = {
+  frontend: "Frontend",
+  backend: "Backend",
+  fullstack: "Full-stack",
+  mobile: "Mobile",
+  ml_ai: "ML / AI",
+  data: "Data",
+  devops: "DevOps / Platform",
+  security: "Security",
+  embedded: "Embedded",
+  qa_sdet: "QA / SDET",
+  engineering_manager: "Engineering manager",
+}
+const WORK_MODE_LABELS = { remote: "Remote", hybrid: "Hybrid", onsite: "Onsite" }
+const WORK_AUTH_LABELS = {
+  citizen_or_pr: "Citizen or permanent resident",
+  need_sponsorship_now: "Needs sponsorship now",
+  need_sponsorship_later: "Will need sponsorship later",
+}
+const SEARCH_STATUS_LABELS = {
+  not_started: "Not started applying yet",
+  applying_no_response: "Applying, not hearing back",
+  interviewing_no_offers: "Interviewing, no offers yet",
+  have_offer: "Has an offer",
+}
+const BLOCKER_LABELS = {
+  resume_not_responding: "Resume isn't getting responses",
+  cant_find_roles: "Can't find good roles",
+  interview_performance: "Freezes or underperforms in interviews",
+  feel_underqualified: "Feels underqualified",
+  no_time_to_apply: "Doesn't have time to apply",
+}
+const TIME_LABELS = {
+  few_hours: "A few hours a week",
+  "5_to_15_hours": "5 to 15 hours a week",
+  "15_plus_hours": "15+ hours a week",
+}
+
+function SnapshotBadge({ label, value }) {
+  if (!value) return null
+  return (
+    <div className="px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 mb-0.5">{label}</p>
+      <p className="text-sm text-white truncate">{value}</p>
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------------
+   Overview tab — career memory progress + onboarding snapshot +
+   experience + education
 ----------------------------------------------------------------*/
 function OverviewTab({ user, experience, education, onExperienceChange, onEducationChange, onImportClick, importing }) {
   const [expModal, setExpModal] = useState({ open: false, index: null })
@@ -42,10 +119,25 @@ function OverviewTab({ user, experience, education, onExperienceChange, onEducat
   const checks = [
     { label: "Experience", done: experience.length > 0 },
     { label: "Skills evidenced", done: (user.skills || []).length > 0 },
-    { label: "Goals set", done: !!user.preferred_role },
+    { label: "Goals set", done: !!(user.preferred_role || user.onboarding_goal) },
     { label: "Location set", done: !!user.location },
   ]
   const doneCount = checks.filter(c => c.done).length
+
+  const snapshotBadges = [
+    { label: "Goal", value: GOAL_LABELS[user.onboarding_goal] },
+    { label: "Situation", value: SITUATION_LABELS[user.onboarding_situation] },
+    { label: "Experience level", value: EXPERIENCE_LABELS[user.experience_level] },
+    { label: "Craft", value: CRAFT_LABELS[user.craft] },
+    { label: "Work mode", value: WORK_MODE_LABELS[user.work_mode] },
+    { label: "Relocation", value: user.open_to_relocate ? "Open to relocating" : null },
+    { label: "Work authorization", value: WORK_AUTH_LABELS[user.work_authorization] },
+    { label: "Search status", value: SEARCH_STATUS_LABELS[user.search_status] },
+    { label: "Biggest blocker", value: BLOCKER_LABELS[user.biggest_blocker] },
+    { label: "Weekly time", value: TIME_LABELS[user.weekly_time_commitment] },
+    { label: "GitHub", value: user.github_username ? `github.com/${user.github_username}` : null },
+  ]
+  const hasSnapshotData = snapshotBadges.some(b => b.value)
 
   async function saveExperience(data) {
     if (expModal.index === null) {
@@ -120,6 +212,24 @@ function OverviewTab({ user, experience, education, onExperienceChange, onEducat
           {importing ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
           {importing ? "Importing…" : "Import from resume"}
         </button>
+      </Glass>
+
+      {/* Onboarding snapshot */}
+      <Glass className="p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 mb-1">From onboarding</p>
+        <h2 className="text-xl font-bold text-white mb-4">Your snapshot</h2>
+
+        {hasSnapshotData ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {snapshotBadges.map(b => (
+              <SnapshotBadge key={b.label} label={b.label} value={b.value} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">
+            Nothing here yet — this fills in once you complete onboarding.
+          </p>
+        )}
       </Glass>
 
       {/* Experience */}

@@ -21,9 +21,25 @@ export const useAuth = () => {
           console.log('✅ Backend user:', response.data.user)
           dispatch(setUser(response.data.user))
         } catch (error) {
-          console.error('❌ Failed:', error.message)
-          dispatch(clearAuth())
-        }
+            if (error.response?.status === 404) {
+              // Backend has no row for this firebase_uid yet — self-heal by
+              // creating it now, using data Firebase already has
+              try {
+                const registerResponse = await api.post('/auth/register', {
+                  firebase_uid: user.uid,
+                  email: user.email,
+                  name: user.displayName || user.email.split('@')[0],
+                })
+                dispatch(setUser(registerResponse.data.user))
+              } catch (registerError) {
+                console.error('❌ Self-heal registration failed:', registerError.message)
+                dispatch(clearAuth())
+              }
+            } else {
+              console.error('❌ Failed:', error.message)
+              dispatch(clearAuth())
+            }
+          }
       } else {
         console.log('👋 No user — clearing auth')
         dispatch(clearAuth())

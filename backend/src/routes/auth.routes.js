@@ -13,5 +13,7 @@ authRouter.post('/login', authController.login);
 
 authRouter.put('/profile', authMiddleware, authController.updateProfile)
 
+authRouter.put('/onboarding', authMiddleware, authController.completeOnboarding)
+
 
 export default authRouter;

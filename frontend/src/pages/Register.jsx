@@ -31,7 +31,7 @@ const Register = () => {
 
     const response = await dispatch(registerUser({ email, password, name }))
     if (registerUser.fulfilled.match(response)) {
-      navigate('/profile-setup')
+      navigate('/onboarding') // new users are always onboarding_completed: false, so this is safe as-is
     }
   }
 

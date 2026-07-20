@@ -5,21 +5,23 @@ import api from '../../services/api.service.js'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 
-export const registerUser = createAsyncThunk('/auth/register', async ({email, password, name},{rejectWithValue}) => {
+export const registerUser = createAsyncThunk('/auth/register', async ({email, password, name}, {rejectWithValue}) => {
    try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const firebase_uid = userCredential.user.uid;
 
-        const response = await api.post('/auth/register', {
-            firebase_uid,
-            email,
-            name
-        });
-        
-        return response.data.user;
+        try {
+          const response = await api.post('/auth/register', { firebase_uid, email, name });
+          return response.data.user;
+        } catch (backendError) {
+          // backend row creation failed — roll back the Firebase account
+          // so this email isn't permanently stuck in a half-registered state
+          await userCredential.user.delete().catch(() => {})
+          throw backendError
+        }
 
    } catch (error) {
-    return rejectWithValue(error.message);
+    return rejectWithValue(error.response?.data?.message || error.message);
    }
 })
 

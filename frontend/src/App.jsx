@@ -22,7 +22,7 @@ import Guides from './pages/Guides.jsx'
 import SystemDesign from './pages/SystemDesign.jsx'
 import BehavioralQs from './pages/BehavioralQs.jsx'
 import Templates from './pages/Templates.jsx'
-
+import OnboardingWizard from './pages/OnboardingWizard.jsx'
 
 
 const App = () => {
@@ -55,7 +55,7 @@ const App = () => {
       <Route path="/interview" element={<ProtectedRoutes><Interview /></ProtectedRoutes>} />
       <Route path="/saved-jobs" element={<ProtectedRoutes><SavedJobs /></ProtectedRoutes>} />
       <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} />
-
+      <Route path="/onboarding" element={<OnboardingWizard />} />
       <Route path="/roadmaps" element={<ProtectedRoutes><Roadmap /></ProtectedRoutes>} />
       <Route path="/projects" element={<ProtectedRoutes><ProjectsResource /></ProtectedRoutes>} />
       <Route path="/guides" element={<ProtectedRoutes><Guides /></ProtectedRoutes>} />

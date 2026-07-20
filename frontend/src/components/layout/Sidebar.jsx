@@ -9,6 +9,7 @@ import {
   ClipboardList, Settings, LogOut, Bookmark,
 } from "lucide-react"
 
+
 const MAIN_ITEMS = [
   { id: "home",      label: "Home",      icon: Home,          route: "/dashboard" },
   { id: "atlas",     label: "Atlas",     icon: Bot,           route: "/atlas"     },
@@ -69,6 +70,16 @@ function SectionLabel({ children, collapsed }) {
 export default function Sidebar() {
   const dispatch = useDispatch()
   const { sidebarCollapsed: collapsed } = useSelector(state => state.theme)
+
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+  const result = await dispatch(logoutUser());
+
+  if (logoutUser.fulfilled.match(result)) {
+    navigate("/");
+  }
+};
 
   return (
     <aside className={`fixed left-0 top-0 flex h-screen flex-col border-r border-white/[0.08] bg-[#05060c]/90 backdrop-blur-2xl transition-all duration-300 z-50 ${collapsed ? "w-[76px]" : "w-64"}`}>
@@ -141,9 +152,11 @@ export default function Sidebar() {
         </NavLink>
 
         <button
-          onClick={() => dispatch(logoutUser())}
+          onClick={handleLogout}
           title={collapsed ? "Logout" : undefined}
-          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium leading-tight text-rose-300/80 transition-colors hover:bg-rose-500/[0.08] hover:text-rose-300 ${collapsed ? "justify-center" : ""}`}
+          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium leading-tight text-rose-300/80 transition-colors hover:bg-rose-500/8 hover:text-rose-300 ${
+            collapsed ? "justify-center" : ""
+          }`}
         >
           <LogOut size={16} strokeWidth={1.8} className="shrink-0" />
           {!collapsed && <span>Logout</span>}
