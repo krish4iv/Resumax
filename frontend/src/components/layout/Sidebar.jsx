@@ -4,16 +4,17 @@ import { logoutUser } from '../../store/slice/authThunks.js'
 import { toggleSidebar } from '../../store/slice/themeSlice.js'
 import {
   PanelLeftClose, PanelLeft, Search, Sparkles,
-  Home, Bot, Route, Briefcase, FileText, Target, User,
+  Home, Briefcase, FileText, Target, User,
   Map, Rocket, BookOpen, Building2, MessagesSquare,
   ClipboardList, Settings, LogOut, Bookmark,
 } from "lucide-react"
 
 
+// Was: "Atlas" -> /atlas and "Path" -> /path — neither route exists in
+// App.jsx (no page was ever built for either), so both just rendered a
+// blank screen when clicked. Removed until there's a real page behind them.
 const MAIN_ITEMS = [
   { id: "home",      label: "Home",      icon: Home,          route: "/dashboard" },
-  { id: "atlas",     label: "Atlas",     icon: Bot,           route: "/atlas"     },
-  { id: "path",      label: "Path",      icon: Route,         route: "/path"      },
   { id: "jobs",      label: "Jobs",      icon: Briefcase,     route: "/jobs"      },
   { id: "resume",    label: "Resume",    icon: FileText,      route: "/resume-builder/new"    },
   { id: "interview", label: "Interview", icon: Target,        route: "/interview" },

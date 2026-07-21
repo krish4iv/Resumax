@@ -3,35 +3,23 @@ import api from '../services/api.service.js'
 import MainLayout from '../components/layout/MainLayout.jsx'
 import { useSelector } from 'react-redux'
 import { auth } from '../config/firebase.js'
-import { theme } from '../theme/index.js'
 import { Link } from 'react-router-dom'
+import { getSavedJobs } from '../services/saveJobs.service.js'
+import { getResumes } from '../services/resume.service.js'
+import { getInterviewStats } from '../services/interview.service.js'
 import {
   Briefcase, BookmarkCheck, Eye, MapPin,
   Building2, Clock, Loader2, ChevronRight,
-  TrendingUp, AlertCircle
+  TrendingUp
 } from 'lucide-react'
-
-const stats = [
-  { label: 'Jobs Applied',  value: '12', icon: Briefcase,    color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
-  { label: 'Saved Jobs',    value: '5',  icon: BookmarkCheck, color: 'text-violet-400',  bg: 'bg-violet-500/10'  },
-  { label: 'Profile Views', value: '48', icon: Eye,           color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-]
-
-// ✅ Graceful fallback for when Python services are down
-const ServiceUnavailable = ({ name }) => (
-  <div className="flex flex-col items-center justify-center py-10 gap-3">
-    <div className="p-3 rounded-xl bg-slate-800/50">
-      <AlertCircle size={20} className="text-slate-500" />
-    </div>
-    <p className="text-sm text-slate-500">{name} unavailable</p>
-    <p className="text-xs text-slate-600">Start the Python service to enable this feature</p>
-  </div>
-)
 
 const Dashboard = () => {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [applications, setApplications] = useState([])
+  const [savedJobs, setSavedJobs] = useState([])
+  const [resumeCount, setResumeCount] = useState(0)
+  const [interviewSolved, setInterviewSolved] = useState(0)
   const { user } = useSelector((state) => state.auth)
 
   useEffect(() => {
@@ -39,14 +27,19 @@ const Dashboard = () => {
       try {
         if (!auth.currentUser) return
 
-        // Fetch jobs and applications in parallel
-        const [jobsRes, appsRes] = await Promise.allSettled([
+        const [jobsRes, appsRes, savedRes, resumesRes, interviewRes] = await Promise.allSettled([
           api.get('/jobs'),
           api.get('/applications'),
+          getSavedJobs(),
+          getResumes(),
+          getInterviewStats('coding'),
         ])
 
         if (jobsRes.status === 'fulfilled') setJobs(jobsRes.value.data)
         if (appsRes.status === 'fulfilled') setApplications(appsRes.value.data)
+        if (savedRes.status === 'fulfilled') setSavedJobs(savedRes.value)
+        if (resumesRes.status === 'fulfilled') setResumeCount(resumesRes.value.length || 0)
+        if (interviewRes.status === 'fulfilled') setInterviewSolved(interviewRes.value.solved || 0)
 
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
@@ -57,10 +50,9 @@ const Dashboard = () => {
     fetchData()
   }, [user])
 
-  // Real stats from DB
   const realStats = [
     { label: 'Jobs Applied',  value: applications.length || 0, icon: Briefcase,    color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
-    { label: 'Saved Jobs',    value: '—',                       icon: BookmarkCheck, color: 'text-violet-400',  bg: 'bg-violet-500/10'  },
+    { label: 'Saved Jobs',    value: savedJobs.length || 0,     icon: BookmarkCheck, color: 'text-violet-400',  bg: 'bg-violet-500/10'  },
     { label: 'Recent Jobs',   value: jobs.length || 0,          icon: Eye,           color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
   ]
 
@@ -71,6 +63,31 @@ const Dashboard = () => {
     offer:     applications.filter(a => a.status === 'offer').length,
     rejected:  applications.filter(a => a.status === 'rejected').length,
   }
+
+  // 3-step progress, derived from real account state instead of hardcoded status.
+  // A step is "done" once its underlying condition is true; the first
+  // not-done step is "active"; anything after that is "next".
+  const stepConditions = [
+    {
+      n: '01', label: 'Sharpen your resume', done: resumeCount > 0,
+      desc: 'Upload and analyze your resume for ATS score', route: '/documents',
+    },
+    {
+      n: '02', label: 'Apply to matches', done: applications.length > 0,
+      desc: 'Browse and apply to jobs matched to your profile', route: '/jobs',
+    },
+    {
+      n: '03', label: 'Prep for interviews', done: interviewSolved > 0,
+      desc: 'Practice with AI-generated interview questions', route: '/interview',
+    },
+  ]
+  const firstNotDoneIndex = stepConditions.findIndex(s => !s.done)
+  const activeIndex = firstNotDoneIndex === -1 ? stepConditions.length - 1 : firstNotDoneIndex
+  const steps = stepConditions.map((s, i) => ({
+    ...s,
+    status: s.done ? 'done' : i === activeIndex ? 'active' : 'next',
+  }))
+  const doneCount = steps.filter(s => s.status === 'done').length
 
   return (
     <MainLayout>
@@ -119,9 +136,9 @@ const Dashboard = () => {
               <TrendingUp size={16} className="text-cyan-400" />
               Application Pipeline
             </h2>
-            <Link to="/applications" className="text-xs text-slate-500 hover:text-white transition-colors">
-              View all →
-            </Link>
+            {/* Was a Link to /applications, a route that doesn't exist anywhere
+                in App.jsx — removed rather than pointing at a dead page. Add
+                this back once there's an actual Applications list page. */}
           </div>
           <div className="grid grid-cols-4 gap-3">
             {[
@@ -138,23 +155,19 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* 3-step progress — matches resumax.ai */}
+        {/* 3-step progress — now derived from real resume/application/interview state */}
         <div className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.03]">
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs text-slate-500 tracking-wide uppercase">Your progress</p>
-            <p className="text-xs text-slate-500">1 of 3</p>
+            <p className="text-xs text-slate-500">{doneCount} of {steps.length}</p>
           </div>
           <div className="flex gap-1.5 mb-5">
-            {[1,2,3].map(i => (
-              <div key={i} className={`h-1 flex-1 rounded-full ${i === 1 ? 'bg-cyan-400' : 'bg-white/10'}`} />
+            {steps.map((s, i) => (
+              <div key={s.n} className={`h-1 flex-1 rounded-full ${s.status !== 'next' ? 'bg-cyan-400' : 'bg-white/10'}`} />
             ))}
           </div>
           <div className="space-y-4">
-            {[
-              { n: '01', label: 'Sharpen your resume', status: 'done',   desc: 'Upload and analyze your resume for ATS score', route: '/documents' },
-              { n: '02', label: 'Apply to matches',    status: 'active', desc: 'Browse and apply to jobs matched to your profile', route: '/jobs' },
-              { n: '03', label: 'Prep for interviews', status: 'next',   desc: 'Practice with AI-generated interview questions', route: '/interview' },
-            ].map(({ n, label, status, desc, route }) => (
+            {steps.map(({ n, label, status, desc, route }) => (
               <div key={n} className={`flex items-start gap-4 p-4 rounded-xl transition-all ${
                 status === 'active' ? 'bg-white/[0.05] border border-white/10' : ''
               }`}>
@@ -239,7 +252,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* AI Features — shown as cards when Python services are off */}
+        {/* AI Features */}
         <div>
           <h2 className="text-sm font-semibold text-white mb-4">AI Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -256,7 +269,7 @@ const Dashboard = () => {
                 <p className="text-sm font-semibold text-white mb-1">{label}</p>
                 <p className="text-xs text-slate-500">{desc}</p>
                 <p className="text-xs text-cyan-400 mt-3 group-hover:text-cyan-300 transition-colors">
-                  Open → 
+                  Open →
                 </p>
               </Link>
             ))}

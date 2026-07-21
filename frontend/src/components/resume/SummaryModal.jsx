@@ -24,10 +24,7 @@ export default function SummaryModal({ open, initial, onClose, onSave }) {
     if (!summary.trim()) return
     setRewriting(true)
     try {
-      // reuses the same rewrite endpoint ExperienceModal/ProjectModal use for
-      // bullets — it's a generic text-rewrite call, not bullet-specific.
-      // Swap for a dedicated rewriteSummary() if your AI service should treat
-      // a full paragraph differently (tone/length) than a single bullet.
+    
       const result = await rewriteBullet(summary)
       setPendingRewrite(result.rewritten)
     } catch (err) {

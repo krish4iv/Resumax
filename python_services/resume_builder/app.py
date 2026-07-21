@@ -62,15 +62,31 @@ def latex_escape_deep(value):
         return [latex_escape_deep(v) for v in value]
     return value
 
-env_path = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
+import shutil
 
-PDFLATEX_PATH = r"C:\Program Files\MiKTeX\miktex\bin\x64\pdflatex.exe"
+# Was: Path(__file__).resolve().parent.parent / ".env" — looked for .env
+# one directory ABOVE this service (python_services/.env), not in this
+# service's own folder. Every other Python service just uses load_dotenv()
+# with no path, which looks in the current/service folder — this one was
+# inconsistent, so a .env placed in resume_builder/ (the documented,
+# consistent-with-every-other-service location) was silently ignored.
+load_dotenv()
 
-OLLAMA_API = os.getenv("OLLAMA_API_URL")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
-PORT = int(os.getenv("RESUME_BUILDER_PORT"))
-FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
+# PDFLATEX_PATH was hardcoded to a Windows-only MiKTeX install path, so PDF
+# generation could only ever work on that one original machine. Now it's
+# resolved cross-platform: explicit env override first, then whatever
+# `pdflatex` resolves to on PATH (works for TeX Live on Linux/Mac and for
+# MiKTeX on Windows if it's been added to PATH during install).
+PDFLATEX_PATH = os.getenv("PDFLATEX_PATH") or shutil.which("pdflatex") or "pdflatex"
+
+OLLAMA_API = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+# Was int(os.getenv("RESUME_BUILDER_PORT")) with no fallback — if that env
+# var wasn't set (guaranteed given the .env bug above), this line threw
+# TypeError at import time and took the entire service down before any
+# endpoint could respond, not just PDF generation.
+PORT = int(os.getenv("RESUME_BUILDER_PORT", 8009))
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 
 app = FastAPI()
 

@@ -7,9 +7,7 @@ const labelStyle = "block text-xs font-medium text-slate-400 mb-1.5"
 
 const emptySkill = { name: "", category: "" }
 
-// existingCategories: string[] — derive this in the parent from the
-// current skills list (e.g. [...new Set(skills.map(s => s.category))])
-// so newly-added categories are available the next time this opens.
+
 export default function SkillsModal({ open, initial, existingCategories = [], onClose, onSave, onDelete }) {
   const [form, setForm] = useState(emptySkill)
   const [creatingCategory, setCreatingCategory] = useState(false)
