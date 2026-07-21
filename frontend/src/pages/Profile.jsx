@@ -1,4 +1,3 @@
-// src/pages/Profile.jsx
 import { useState, useEffect } from "react"
 import MainLayout from "../components/layout/MainLayout.jsx"
 import { useSelector, useDispatch } from "react-redux"
