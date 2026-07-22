@@ -1,4 +1,4 @@
-// src/services/news.service.js
+
 import { createExternalApi } from './externalApi.js'
 import { API_URLS } from '../config/apiConfig.js'
 

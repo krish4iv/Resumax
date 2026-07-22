@@ -1,14 +1,11 @@
-// src/services/resume.service.js
+
 import api from './api.service.js'
 import { createExternalApi } from './externalApi.js'
 import { API_URLS } from '../config/apiConfig.js'
 
 const resumeAI = createExternalApi(API_URLS.resumeAI)
 
-/* ---------------------------------------------------------------
-   Resume CRUD — talks to Node.js backend at /api/resumes
-   (protected by Firebase auth middleware, handled by `api`)
-----------------------------------------------------------------*/
+
 export const getResumes = async () => {
   const response = await api.get('/resumes')
   return response.data
@@ -34,9 +31,7 @@ export const deleteResume = async (id) => {
   return response.data
 }
 
-/* ---------------------------------------------------------------
-   AI microservice — FastAPI service (no auth needed, runs locally)
-----------------------------------------------------------------*/
+
 export const analyzeResume = async (file) => {
   const formData = new FormData()
   formData.append('file', file)

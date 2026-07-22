@@ -1,4 +1,4 @@
-// src/pages/Document.jsx
+
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import MainLayout from "../components/layout/MainLayout.jsx"

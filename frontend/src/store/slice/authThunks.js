@@ -14,8 +14,6 @@ export const registerUser = createAsyncThunk('/auth/register', async ({email, pa
           const response = await api.post('/auth/register', { firebase_uid, email, name });
           return response.data.user;
         } catch (backendError) {
-          // backend row creation failed — roll back the Firebase account
-          // so this email isn't permanently stuck in a half-registered state
           await userCredential.user.delete().catch(() => {})
           throw backendError
         }
