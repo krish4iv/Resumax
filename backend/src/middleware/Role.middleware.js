@@ -1,14 +1,4 @@
-/**
- * requireRole('admin') -> middleware factory.
- * Must run AFTER authMiddleware (needs req.user already set from the
- * verified Firebase token) — but note authMiddleware only decodes the
- * Firebase token, it doesn't attach your DB `role` column. This looks up
- * the DB user once per request to check the actual role.
- *
- * If this route gets hit often, consider caching role lookups (e.g. a
- * short-TTL in-memory map keyed by uid) instead of hitting Postgres on
- * every single request — flagging for later, not blocking this fix.
- */
+
 import { User } from "../models/index.js"
 
 const requireRole = (...allowedRoles) => {

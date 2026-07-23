@@ -13,6 +13,11 @@ const JobDetailPanel = ({ job, saving, savedIds, applying, appliedIds, onSave, o
   const isSaved = savedIds.has(job.id)
   const isApplied = appliedIds.has(job.id)
 
+  const handleApplyClick = () => {
+    if (job.source_url) window.open(job.source_url, '_blank', 'noopener,noreferrer')
+    onApply(job)
+  }
+
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 lg:sticky lg:top-4 min-h-[420px]">
       <div className="flex items-start gap-3">
@@ -45,24 +50,14 @@ const JobDetailPanel = ({ job, saving, savedIds, applying, appliedIds, onSave, o
           {isSaved ? 'Saved' : 'Save'}
         </button>
         <button
-          onClick={() => onApply(job)}
-          disabled={applying || isApplied}
+          onClick={handleApplyClick}
+          disabled={applying || isApplied || !job.source_url}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
         >
           <CheckCircle2 size={14} />
           {isApplied ? 'Applied' : applying ? 'Applying…' : 'Apply'}
+          {!isApplied && !applying && <ExternalLink size={12} />}
         </button>
-        {job.source_url && (
-          <a
-            href={job.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-all"
-          >
-            View posting
-            <ExternalLink size={13} />
-          </a>
-        )}
       </div>
 
       <div className="mt-6 pt-6 border-t border-white/[0.06]">

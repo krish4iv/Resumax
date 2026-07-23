@@ -1,11 +1,7 @@
 import { Op } from "sequelize"
 import { InterviewQuestion, UserQuestionProgress, Company } from "../models/index.js"
 
-/**
- * Shared fetch: one query, LEFT JOIN questions -> this user's progress.
- * Used by both listQuestions and getStats so neither has to do a second
- * full InterviewQuestion.findAll just to recompute what the other already has.
- */
+
 async function fetchQuestionsWithProgress(user_id, { module, category, difficulty, list, company }) {
   const where = { module }
   if (category) where.category = category
@@ -26,9 +22,9 @@ async function fetchQuestionsWithProgress(user_id, { module, category, difficult
     include: [
       {
         model: UserQuestionProgress,
-        as: "progress", // must match the alias defined in models/index.js association
+        as: "progress", 
         where: { user_id },
-        required: false, // LEFT JOIN — keep questions with no progress row yet
+        required: false, 
       },
     ],
     order: [

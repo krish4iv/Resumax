@@ -1,19 +1,13 @@
 import express from "express";
 import authController from "../controllers/auth.controller.js";
-// In auth.routes.js
-import authMiddleware from '../middleware/auth.middleware.js'
+
 const authRouter = express.Router();
 
-authRouter.get('/me', authMiddleware, authController.getMe)
-
+authRouter.get('/me', authController.getMe)
 authRouter.post('/register', authController.register);
-
-
 authRouter.post('/login', authController.login);
-
-authRouter.put('/profile', authMiddleware, authController.updateProfile)
-
-authRouter.put('/onboarding', authMiddleware, authController.completeOnboarding)
+authRouter.put('/profile', authController.updateProfile)
+authRouter.put('/onboarding', authController.completeOnboarding)
 
 
 export default authRouter;

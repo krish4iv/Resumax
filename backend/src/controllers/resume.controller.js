@@ -1,9 +1,5 @@
 import { Resume } from "../models/index.js";
 
-// Note: no more try/catch here — asyncHandler (applied in resume.routes.js)
-// forwards any thrown/rejected error to the centralized error middleware.
-// This is the pattern to mechanically apply to the other 5 CRUD controllers
-// (application, education, experience, project, savedJob) next.
 
 async function createResume(req, res) {
   const { filename, content, ats_score, content_quality, ats_structure, job_optimization, writing_quality, app_ready, strengths, findings } = req.body
