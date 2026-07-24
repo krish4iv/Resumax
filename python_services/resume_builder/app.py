@@ -352,7 +352,7 @@ async def analyze_resume(file: UploadFile = File(...)):
 
         resume_text = resume_text[:6000]
 
-        # ---- CALL 1: scoring + findings (small, fast) ----
+        # ---- CALL 1: scoring + findings ----
         score_prompt = f"""You are an expert ATS resume analyzer. Analyze this resume and return ONLY this JSON:
 
 {{
@@ -375,12 +375,17 @@ Resume:
 
 Return ONLY the JSON, no other text."""
 
+        # NOTE: concurrency was tried here (asyncio.gather + httpx) and
+        # tested — timing came back identical to sequential, confirming
+        # Ollama serializes requests to this model regardless of
+        # OLLAMA_NUM_PARALLEL on this hardware. Reverted to sequential
+        # since it's simpler with zero measured downside right now.
         score_response = requests.post(OLLAMA_API, json={
             "model": OLLAMA_MODEL,
             "prompt": score_prompt,
             "stream": False,
             "options": {"temperature": 0.1, "num_predict": 900}
-        }, timeout=180)
+        }, timeout=400)
 
         if score_response.status_code != 200:
             raise Exception(f"Ollama error (scoring): {score_response.text}")
@@ -405,7 +410,7 @@ Return ONLY the JSON, no other text."""
         except json.JSONDecodeError as je:
             raise Exception(f"Scoring JSON was malformed: {je}. Raw match: {score_match.group()[:500]}")
 
-        # ---- CALL 2: content extraction (small, fast, separate) ----
+        # ---- CALL 2: content extraction (separate) ----
         extract_prompt = f"""Extract structured resume data. Return ONLY this JSON:
 
 {{
@@ -438,7 +443,7 @@ Return ONLY the JSON, no other text."""
             "prompt": extract_prompt,
             "stream": False,
             "options": {"temperature": 0.1, "num_predict": 2000}
-        }, timeout=180)
+        }, timeout=400)
 
         extracted_content = {}
         if extract_response.status_code == 200:
